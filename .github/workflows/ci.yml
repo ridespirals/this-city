@@ -32,7 +32,9 @@ jobs:
             libxrandr-dev \
             libxi-dev \
             libxinerama-dev \
-            libxxf86vm-dev
+            libxxf86vm-dev \
+            libwayland-dev \
+            libxkbcommon-dev
 
       - name: Test
         run: go test ./...

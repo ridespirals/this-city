@@ -77,7 +77,7 @@ Optional body: motivation, layer touched, doc updates.
 - [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — on push to `main` and on PRs: `go test ./...` + build.
 - [`.github/workflows/release.yml`](.github/workflows/release.yml) — on tags `v*`: multi-OS binaries + GitHub Release.
 - Do not commit secrets; release uses `GITHUB_TOKEN`.
-- When changing Go version or native deps, update both workflows (Linux apt packages for raylib).
+- When changing Go version or native deps, update both workflows (Linux apt packages for raylib/GLFW, including Wayland: `libwayland-dev`, `libxkbcommon-dev`).
 
 ## Release suggestions (human-owned)
 
