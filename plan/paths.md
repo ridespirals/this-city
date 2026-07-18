@@ -4,6 +4,16 @@
 
 Author and run along streets and walkways as cubic Bezier curves, forming a navigable network for agents.
 
+## Implementation (Phase 4)
+
+| Piece | Location |
+|-------|----------|
+| `Vec2`, `CubicBezier`, `Polyline` | `internal/sim/vec2.go`, `bezier.go` |
+| `Path`, `PathSet`, `PathFollower` | `internal/sim/path.go` |
+| Advance / tick | `internal/sim/path_follow.go` |
+| Demo path + spawn | `internal/game/demo.go` |
+| Draw | `render.DrawPaths` uses `Path.Poly` only |
+
 ## Authoring model
 
 - **Segment:** cubic Bezier (`p0`, `c0`, `c1`, `p1`) in world 2D.

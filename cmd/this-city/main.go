@@ -35,11 +35,12 @@ func main() {
 		session.Tick(dt)
 
 		render.BeginFrame(bg)
+		render.DrawPaths(session.World)
 		render.DrawWorld(session.World)
 		render.DrawHUD(render.FrameInfo{
 			Paused:  session.Paused,
 			SimTime: session.Time,
-			Phase:   "Phase 3 — ECS + FSM",
+			Phase:   "Phase 4 — paths + follower",
 		})
 		render.EndFrame()
 	}

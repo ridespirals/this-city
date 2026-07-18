@@ -4,7 +4,7 @@ Planning docs for the city simulation. Code follows these contracts; when scope 
 
 ## Status
 
-**Current phase:** 3 — ECS + FSM core (**complete**). Next: Phase 4 — Bezier paths + follower. See [roadmap.md](roadmap.md).
+**Current phase:** 4 — Bezier paths + follower (**complete**). Next: Phase 5 — Editor toolbar. See [roadmap.md](roadmap.md).
 
 ## Locked decisions
 
@@ -37,9 +37,9 @@ Planning docs for the city simulation. Code follows these contracts; when scope 
 
 1. Docs foundation — done
 2. Module + game loop — done
-3. ECS + FSM core — **done**
-4. Bezier paths + follower ← **next**
-5. Editor toolbar
+3. ECS + FSM core — done
+4. Bezier paths + follower — **done**
+5. Editor toolbar ← **next**
 6. Civilian + police FSMs
 7. BSP + pathfinding
 8. Save/load stub

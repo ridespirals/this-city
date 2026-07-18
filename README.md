@@ -6,9 +6,9 @@ Civilians travel between places, hang out in the park, and react to things they 
 
 ## Status
 
-**Phase 3 — ECS + FSM core (complete).** Entity/component stores, a reusable FSM engine, and a debug agent that toggles states on a timer (visible as a color-changing circle). Plans remain in [`plan/`](plan/README.md).
+**Phase 4 — Bezier paths + follower (complete).** Cubic Bézier streets, polyline sampling, and an agent that ping-pongs along a demo path at constant speed. Plans remain in [`plan/`](plan/README.md).
 
-Next up: Phase 4 — Bezier paths + path follower. See the [roadmap](plan/roadmap.md).
+Next up: Phase 5 — Editor toolbar. See the [roadmap](plan/roadmap.md).
 
 ## Stack
 

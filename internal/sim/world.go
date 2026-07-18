@@ -12,19 +12,24 @@ type World struct {
 	free        []uint32
 	removers    []remover
 
+	Paths *PathSet
+
 	Transforms *ComponentStore[Transform2D]
 	Brains     *ComponentStore[AgentBrain]
 	Roles      *ComponentStore[RoleTag]
+	Followers  *ComponentStore[PathFollower]
 }
 
 // NewWorld returns an empty simulation world with standard component stores.
 func NewWorld() *World {
 	w := &World{
+		Paths:      newPathSet(),
 		Transforms: newStore[Transform2D](),
 		Brains:     newStore[AgentBrain](),
 		Roles:      newStore[RoleTag](),
+		Followers:  newStore[PathFollower](),
 	}
-	w.removers = []remover{w.Transforms, w.Brains, w.Roles}
+	w.removers = []remover{w.Transforms, w.Brains, w.Roles, w.Followers}
 	return w
 }
 

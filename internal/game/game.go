@@ -22,12 +22,13 @@ func NewSession(world *sim.World) *Session {
 	}
 }
 
-// SpawnDemo populates a Phase-3 debug agent in the center of a 1280x720 view.
+// SpawnDemo adds a Phase-4 path and a ping-pong path follower.
 func (s *Session) SpawnDemo() {
 	if s == nil || s.World == nil {
 		return
 	}
-	SpawnDebugAgent(s.World, 640, 360)
+	id := s.World.Paths.Add(DemoPath())
+	SpawnPathFollower(s.World, id, 140)
 }
 
 // Tick advances simulation systems by dt seconds when not paused.
@@ -37,6 +38,7 @@ func (s *Session) Tick(dt float32) {
 	}
 	s.Time += float64(dt)
 	TickBrains(s.World, s.Machines, dt)
+	sim.TickPathFollowers(s.World, dt)
 }
 
 // SetPaused freezes or resumes simulation ticks.

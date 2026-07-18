@@ -4,7 +4,7 @@ This file is the contract for automated assistants working on **This City**. Pre
 
 ## Project in one paragraph
 
-Go + raylib city sim. ECS + FSM-driven agents (civilians, police), Bezier street network, path following/pathfinding, BSP spatial queries. Layers: pure `sim` → `game` → `render`/`editor`. Module path: `github.com/ridespirals/this-city`. Phase 3 complete (ECS + FSM + debug agent); next is Phase 4 (Bezier paths + follower).
+Go + raylib city sim. ECS + FSM-driven agents (civilians, police), Bezier street network, path following/pathfinding, BSP spatial queries. Layers: pure `sim` → `game` → `render`/`editor`. Module path: `github.com/ridespirals/this-city`. Phase 4 complete (paths + follower); next is Phase 5 (editor toolbar).
 
 ## Read first
 
@@ -67,10 +67,13 @@ plan/                     # design docs (source of truth for intent)
 - FSM: `sim.Definition` + `AgentBrain`; tick order OnUpdate → transition → OnExit → Action → OnEnter.
 - Guards must be side-effect free; mutate blackboard in actions/hooks only.
 - Register machines on `game.Session.Machines` by string key (`AgentBrain.Machine`).
+- Paths: `World.Paths` (`PathSet`) owns `CubicBezier` chains + `Polyline` samples; not ECS entities.
+- Followers: `PathFollower` component; advance via `sim.TickPathFollowers` (ping-pong or clamp at ends).
+- Render must stroke `Path.Poly` from sim — do not re-sample Béziers in `render`.
 
 ## Current phase
 
-**Phase 3 — ECS + FSM (complete).** Next: Phase 4 — Bezier paths + follower (`plan/paths.md`). Do not skip ahead to editor/full agents unless asked.
+**Phase 4 — paths + follower (complete).** Next: Phase 5 — editor toolbar (`plan/editor.md`). Do not skip ahead to full civilian/police FSMs unless asked.
 
 ## Suggested commit style
 
@@ -91,4 +94,4 @@ Optional body: motivation, layer touched, doc updates.
 
 - Prefer annotated tags: `git tag -a v0.x.0 -m "v0.x.0"`.
 - Further tags at roadmap phase boundaries; see [plan/roadmap.md](plan/roadmap.md).
-- Phase 3 does not require a new tag unless you want one (`v0.2.0` is reserved in the roadmap for paths + follower).
+- Suggested tag after Phase 4: **`v0.2.0`** (paths + follower).

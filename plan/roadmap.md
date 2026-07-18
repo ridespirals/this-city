@@ -36,8 +36,12 @@ Phased delivery from docs to a 3D-ready layered sim. Exit criteria are practical
 
 ## Phase 4 — Bezier paths + follower
 
-- Path data structures, sampling, path follower system.
-- Render paths and a moving agent on a hard-coded or loaded path.
+**Status:** complete.
+
+- [x] `CubicBezier`, `Polyline` sampling, `Path` / `PathSet` on `World`
+- [x] `PathFollower` + `TickPathFollowers` (ping-pong)
+- [x] Demo S-curve path; render strokes polyline; agent follows at constant speed
+- Suggested tag: `v0.2.0`
 
 **Exit:** Agent follows a curve at roughly constant speed.
 
