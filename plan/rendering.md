@@ -6,8 +6,9 @@ Present the simulation and editor chrome via raylib, without owning game rules. 
 
 ## Stack
 
-- Go + [gen2brain/raylib-go](https://github.com/gen2brain/raylib-go)
+- Go + [gen2brain/raylib-go](https://github.com/gen2brain/raylib-go) v0.60
 - Package: `internal/render` (+ UI bits in `internal/editor`)
+- Phase 2: `Window` lifecycle, clear/draw frame helpers, placeholder splash text
 
 ## 2D (current target)
 

@@ -4,7 +4,7 @@ Planning docs for the city simulation. Code follows these contracts; when scope 
 
 ## Status
 
-**Current phase:** 1 — Docs foundation (**complete**). Next: Phase 2 — Go module, raylib window, package skeletons. See [roadmap.md](roadmap.md).
+**Current phase:** 2 — Module + loop (**complete**). Next: Phase 3 — ECS + FSM core. See [roadmap.md](roadmap.md).
 
 ## Locked decisions
 
@@ -35,9 +35,9 @@ Planning docs for the city simulation. Code follows these contracts; when scope 
 
 ## Development order (summary)
 
-1. Docs foundation ← **you are here**
-2. Module + game loop
-3. ECS + FSM core
+1. Docs foundation — done
+2. Module + game loop — **done**
+3. ECS + FSM core ← **next**
 4. Bezier paths + follower
 5. Editor toolbar
 6. Civilian + police FSMs
@@ -47,7 +47,7 @@ Planning docs for the city simulation. Code follows these contracts; when scope 
 
 Details and exit criteria: [roadmap.md](roadmap.md).
 
-## Suggested package layout (future code)
+## Package layout
 
 ```
 cmd/this-city/main.go

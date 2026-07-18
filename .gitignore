@@ -1,0 +1,18 @@
+# Binaries
+/bin/
+/tmp/
+*.exe
+*.test
+*.out
+/this-city
+
+# Go
+coverage.out
+coverage.html
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+*.code-workspace

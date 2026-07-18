@@ -4,7 +4,7 @@ This file is the contract for automated assistants working on **This City**. Pre
 
 ## Project in one paragraph
 
-Go + raylib city sim. ECS + FSM-driven agents (civilians, police), Bezier street network, path following/pathfinding, BSP spatial queries. Layers: pure `sim` → `game` → `render`/`editor`. Docs-first; code scaffolding starts at roadmap Phase 2.
+Go + raylib city sim. ECS + FSM-driven agents (civilians, police), Bezier street network, path following/pathfinding, BSP spatial queries. Layers: pure `sim` → `game` → `render`/`editor`. Module path: `github.com/ridespirals/this-city`. Phase 2 scaffolding is in place; next is Phase 3 (ECS + FSM).
 
 ## Read first
 
@@ -49,20 +49,20 @@ Do not leave docs contradicting the code or the agreed plan.
 - Deterministic ticks: fixed `dt`, seeded RNG in tests.
 - No third-party ECS library unless the human decides to adopt one; hand-roll minimal first.
 
-## Planned package layout
+## Package layout
 
 ```
-cmd/this-city/main.go
-internal/sim/
-internal/game/
-internal/render/
-internal/editor/
-plan/                 # design docs (source of truth for intent)
+cmd/this-city/main.go     # window + loop wiring
+internal/sim/             # pure sim (no raylib)
+internal/game/            # tick/session (no raylib)
+internal/render/          # raylib window + draw helpers
+internal/editor/          # tool state (tools in Phase 5)
+plan/                     # design docs (source of truth for intent)
 ```
 
 ## Current phase
 
-**Phase 1 — Docs foundation.** No application module yet. Do not invent large code trees unless the human asks to start Phase 2.
+**Phase 2 — Module + loop (complete).** Runnable `go run ./cmd/this-city`. Next: Phase 3 — ECS + FSM core (`plan/ecs.md`, `plan/state-machines.md`). Do not skip ahead to editor/agents unless asked.
 
 ## Suggested commit style
 
@@ -72,16 +72,7 @@ Short imperative summary (what/why).
 Optional body: motivation, layer touched, doc updates.
 ```
 
-Example after this docs bootstrap:
-
-```
-Document project architecture and phased roadmap.
-
-Establish plan/, README, and AGENTS.md so sim, game, and render
-layers have a shared contract before code scaffolding.
-```
-
 ## Release suggestions (human-owned)
 
-- `v0.1.0` — after Phase 2 (runnable window).
+- Tag **`v0.1.0`** now that Phase 2 exits (`go run ./cmd/this-city` opens a window).
 - Further tags at roadmap phase boundaries; see [plan/roadmap.md](plan/roadmap.md).

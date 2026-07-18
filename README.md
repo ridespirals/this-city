@@ -6,9 +6,9 @@ Civilians travel between places, hang out in the park, and react to things they 
 
 ## Status
 
-**Phase 1 — Docs foundation.** Architecture and feature plans are in [`plan/`](plan/README.md). Application code is not started yet.
+**Phase 2 — Module + loop (complete).** Go module, layered packages, and a runnable raylib window are in place. Plans remain in [`plan/`](plan/README.md).
 
-Next up: Go module, raylib window, and package skeletons (`sim` / `game` / `render` / `editor`). See the [roadmap](plan/roadmap.md).
+Next up: Phase 3 — ECS + FSM core. See the [roadmap](plan/roadmap.md).
 
 ## Stack
 
@@ -51,12 +51,22 @@ Start at **[plan/README.md](plan/README.md)** — index of all system plans:
 
 AI contributors: see [AGENTS.md](AGENTS.md).
 
-## Running
+## Requirements
 
-Not applicable until Phase 2. Expected entrypoint:
+- Go 1.26+ (module targets the toolchain in `go.mod`)
+- A desktop environment for the raylib window (`go test ./...` does not open a window)
+
+## Running
 
 ```bash
 go run ./cmd/this-city
+```
+
+- **Space** — pause / resume sim clock
+- **Esc** or close the window — quit
+
+```bash
+go test ./...
 ```
 
 ## License

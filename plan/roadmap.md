@@ -14,10 +14,12 @@ Phased delivery from docs to a 3D-ready layered sim. Exit criteria are practical
 
 ## Phase 2 — Module + loop
 
-- Go module (`go mod init`), raylib-go dependency.
-- Package skeletons: `internal/sim`, `game`, `render`, `editor`.
-- `cmd/this-city`: window, clear color, frame clock, graceful quit.
-- Suggested tag: `v0.1.0`.
+**Status:** complete.
+
+- [x] Go module (`github.com/ridespirals/this-city`), raylib-go v0.60
+- [x] Package skeletons: `internal/sim`, `game`, `render`, `editor`
+- [x] `cmd/this-city`: window, clear color, frame clock, pause (Space), quit (Esc)
+- Suggested tag: `v0.1.0`
 
 **Exit:** `go run ./cmd/this-city` opens a window.
 
