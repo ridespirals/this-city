@@ -4,7 +4,7 @@ This file is the contract for automated assistants working on **This City**. Pre
 
 ## Project in one paragraph
 
-Go + raylib city sim. ECS + FSM-driven agents (civilians, police), Bezier street network, path following/pathfinding, BSP spatial queries. Layers: pure `sim` → `game` → `render`/`editor`. Module path: `github.com/ridespirals/this-city`. Phase 2 scaffolding is in place; next is Phase 3 (ECS + FSM).
+Go + raylib city sim. ECS + FSM-driven agents (civilians, police), Bezier street network, path following/pathfinding, BSP spatial queries. Layers: pure `sim` → `game` → `render`/`editor`. Module path: `github.com/ridespirals/this-city`. Phase 3 complete (ECS + FSM + debug agent); next is Phase 4 (Bezier paths + follower).
 
 ## Read first
 
@@ -53,16 +53,24 @@ Do not leave docs contradicting the code or the agreed plan.
 
 ```
 cmd/this-city/main.go     # window + loop wiring
-internal/sim/             # pure sim (no raylib)
-internal/game/            # tick/session (no raylib)
+internal/sim/             # ECS world, stores, FSM engine (no raylib)
+internal/game/            # session, machines, brain systems (no raylib)
 internal/render/          # raylib window + draw helpers
 internal/editor/          # tool state (tools in Phase 5)
 plan/                     # design docs (source of truth for intent)
 ```
 
+### Sim conventions (Phase 3+)
+
+- Entities: `Index` + `Generation`; `NilEntity` is `{0,0}` (generations start at 1).
+- Components: map-backed `ComponentStore[T]` on `World` (`Transforms`, `Brains`, `Roles`).
+- FSM: `sim.Definition` + `AgentBrain`; tick order OnUpdate → transition → OnExit → Action → OnEnter.
+- Guards must be side-effect free; mutate blackboard in actions/hooks only.
+- Register machines on `game.Session.Machines` by string key (`AgentBrain.Machine`).
+
 ## Current phase
 
-**Phase 2 — Module + loop (complete).** Runnable `go run ./cmd/this-city`. Next: Phase 3 — ECS + FSM core (`plan/ecs.md`, `plan/state-machines.md`). Do not skip ahead to editor/agents unless asked.
+**Phase 3 — ECS + FSM (complete).** Next: Phase 4 — Bezier paths + follower (`plan/paths.md`). Do not skip ahead to editor/full agents unless asked.
 
 ## Suggested commit style
 
@@ -81,6 +89,6 @@ Optional body: motivation, layer touched, doc updates.
 
 ## Release suggestions (human-owned)
 
-- Tag **`v0.1.0`** for Phase 2 (`git tag v0.1.0 && git push origin v0.1.0`) once CI is green on `main`.
+- Prefer annotated tags: `git tag -a v0.x.0 -m "v0.x.0"`.
 - Further tags at roadmap phase boundaries; see [plan/roadmap.md](plan/roadmap.md).
-- Prefer annotated tags: `git tag -a v0.1.0 -m "v0.1.0"`.
+- Phase 3 does not require a new tag unless you want one (`v0.2.0` is reserved in the roadmap for paths + follower).

@@ -6,9 +6,9 @@ Civilians travel between places, hang out in the park, and react to things they 
 
 ## Status
 
-**Phase 2 — Module + loop (complete).** Go module, layered packages, and a runnable raylib window are in place. Plans remain in [`plan/`](plan/README.md).
+**Phase 3 — ECS + FSM core (complete).** Entity/component stores, a reusable FSM engine, and a debug agent that toggles states on a timer (visible as a color-changing circle). Plans remain in [`plan/`](plan/README.md).
 
-Next up: Phase 3 — ECS + FSM core. See the [roadmap](plan/roadmap.md).
+Next up: Phase 4 — Bezier paths + path follower. See the [roadmap](plan/roadmap.md).
 
 ## Stack
 

@@ -6,14 +6,28 @@ import "github.com/ridespirals/this-city/internal/sim"
 
 // Session is the runnable game layer over a sim world.
 type Session struct {
-	World  *sim.World
-	Paused bool
-	Time   float64 // accumulated sim time in seconds
+	World    *sim.World
+	Machines Machines
+	Paused   bool
+	Time     float64 // accumulated sim time in seconds
 }
 
-// NewSession wraps a world for ticking.
+// NewSession wraps a world for ticking and registers built-in machines.
 func NewSession(world *sim.World) *Session {
-	return &Session{World: world}
+	return &Session{
+		World: world,
+		Machines: Machines{
+			MachineDebug: DebugMachine(),
+		},
+	}
+}
+
+// SpawnDemo populates a Phase-3 debug agent in the center of a 1280x720 view.
+func (s *Session) SpawnDemo() {
+	if s == nil || s.World == nil {
+		return
+	}
+	SpawnDebugAgent(s.World, 640, 360)
 }
 
 // Tick advances simulation systems by dt seconds when not paused.
@@ -22,7 +36,7 @@ func (s *Session) Tick(dt float32) {
 		return
 	}
 	s.Time += float64(dt)
-	// Phase 3+: run ECS / FSM / path systems here.
+	TickBrains(s.World, s.Machines, dt)
 }
 
 // SetPaused freezes or resumes simulation ticks.

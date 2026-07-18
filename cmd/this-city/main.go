@@ -13,6 +13,7 @@ import (
 func main() {
 	world := sim.NewWorld()
 	session := game.NewSession(world)
+	session.SpawnDemo()
 	ed := editor.New()
 	_ = ed // toolbar tools arrive in Phase 5
 
@@ -34,7 +35,12 @@ func main() {
 		session.Tick(dt)
 
 		render.BeginFrame(bg)
-		render.DrawPlaceholder(session.Paused, session.Time)
+		render.DrawWorld(session.World)
+		render.DrawHUD(render.FrameInfo{
+			Paused:  session.Paused,
+			SimTime: session.Time,
+			Phase:   "Phase 3 — ECS + FSM",
+		})
 		render.EndFrame()
 	}
 }

@@ -4,6 +4,13 @@
 
 Drive agent behavior with an explicit, testable FSM living in `internal/sim`, configured and interpreted by `internal/game`.
 
+## Implementation
+
+- Package: `internal/sim` (`fsm.go`) — `Definition`, `StateDef`, `Transition`, `Blackboard`, `Context`.
+- Instances: `AgentBrain` component (`Machine` key, `State`, `BB`).
+- Registry: `game.Session.Machines`; runner: `game.TickBrains`.
+- Phase 3 demo: `game.DebugMachine` (`alpha` ↔ `beta` every 1.5s).
+
 ## Design
 
 ### Definition (static)

@@ -25,9 +25,12 @@ Phased delivery from docs to a 3D-ready layered sim. Exit criteria are practical
 
 ## Phase 3 — ECS + FSM core
 
-- Entity allocator, component stores, basic systems runner.
-- Generic FSM engine + unit tests.
-- One debug agent that toggles states on a timer (no art required).
+**Status:** complete.
+
+- [x] Entity allocator (index + generation), map-backed component stores, `World`
+- [x] Generic FSM engine (`Definition` / guards / actions / hooks) + unit tests
+- [x] Debug agent (`alpha`/`beta` timer toggle); drawn as a color-changing circle
+- [x] `TickBrains` system on `game.Session`
 
 **Exit:** Tests prove ECS + FSM; debug agent visible or logged.
 

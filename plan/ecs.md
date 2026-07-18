@@ -14,10 +14,11 @@ Agents share cross-cutting data (transform, path follower, perception) with diff
 
 ## Storage (v1)
 
-Start simple and replace later if profiling demands it:
+Implemented in `internal/sim`:
 
-- Entity allocator: free-list + generation counters.
-- Components: `map[Entity]T` per type, or parallel sparse sets.
+- Entity allocator: free-list + generation counters (generations start at 1; `{0,0}` is `NilEntity`).
+- Components: `ComponentStore[T]` (`map[Entity]T`) on `World` — currently `Transforms`, `Brains`, `Roles`.
+- Destroy clears all registered stores and bumps generation.
 - No archetype graph until we need cache-friendly iteration at scale.
 
 ## Early components

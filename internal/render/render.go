@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
+
+	"github.com/ridespirals/this-city/internal/sim"
 )
 
 const (
@@ -93,15 +95,54 @@ func EndFrame() {
 	rl.EndDrawing()
 }
 
-// DrawPlaceholder paints a Phase-2 splash so the window is visibly alive.
-func DrawPlaceholder(paused bool, simTime float64) {
+// FrameInfo is HUD data for the current frame.
+type FrameInfo struct {
+	Paused  bool
+	SimTime float64
+	Phase   string
+}
+
+// DrawHUD paints status text in screen space.
+func DrawHUD(info FrameInfo) {
+	phase := info.Phase
+	if phase == "" {
+		phase = "dev"
+	}
 	rl.DrawText("This City", 40, 40, 40, rl.RayWhite)
-	rl.DrawText("Phase 2 — module + loop", 40, 100, 20, rl.LightGray)
+	rl.DrawText(phase, 40, 100, 20, rl.LightGray)
 	status := "running"
-	if paused {
+	if info.Paused {
 		status = "paused (Space)"
 	}
 	rl.DrawText(status, 40, 140, 20, rl.LightGray)
-	rl.DrawText(fmt.Sprintf("sim time: %.1fs", simTime), 40, 180, 20, rl.LightGray)
+	rl.DrawText(fmt.Sprintf("sim time: %.1fs", info.SimTime), 40, 180, 20, rl.LightGray)
 	rl.DrawText("Esc or close window to quit", 40, 220, 18, rl.Gray)
+}
+
+// DrawWorld draws agents from sim state (read-only).
+func DrawWorld(w *sim.World) {
+	if w == nil {
+		return
+	}
+	w.Transforms.ForEach(func(e sim.Entity, xf sim.Transform2D) {
+		color := rl.NewColor(120, 180, 220, 255)
+		label := ""
+		if brain, ok := w.Brains.Get(e); ok {
+			label = string(brain.State)
+			switch brain.BB.Tag {
+			case "alpha":
+				color = rl.NewColor(80, 200, 140, 255)
+			case "beta":
+				color = rl.NewColor(220, 140, 80, 255)
+			}
+		}
+		radius := float32(16)
+		if xf.Scale > 0 {
+			radius *= xf.Scale
+		}
+		rl.DrawCircle(int32(xf.X), int32(xf.Y), radius, color)
+		if label != "" {
+			rl.DrawText(label, int32(xf.X)-20, int32(xf.Y)-36, 18, rl.RayWhite)
+		}
+	})
 }
