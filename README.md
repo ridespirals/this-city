@@ -69,6 +69,20 @@ go run ./cmd/this-city
 go test ./...
 ```
 
+## CI & releases
+
+| Workflow | Trigger | What it does |
+|----------|---------|----------------|
+| [CI](.github/workflows/ci.yml) | Pushes to `main`, all pull requests | `go test ./...` and build `cmd/this-city` on Ubuntu |
+| [Release](.github/workflows/release.yml) | Tags matching `v*` (e.g. `v0.1.0`) | Test, build Linux/macOS/Windows binaries, publish a GitHub Release |
+
+Tag a release (after pushing the commit you want tagged):
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
 ## License
 
 [MIT](LICENSE) © 2026 John Varga.

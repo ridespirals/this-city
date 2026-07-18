@@ -72,7 +72,15 @@ Short imperative summary (what/why).
 Optional body: motivation, layer touched, doc updates.
 ```
 
+## CI
+
+- [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — on push to `main` and on PRs: `go test ./...` + build.
+- [`.github/workflows/release.yml`](.github/workflows/release.yml) — on tags `v*`: multi-OS binaries + GitHub Release.
+- Do not commit secrets; release uses `GITHUB_TOKEN`.
+- When changing Go version or native deps, update both workflows (Linux apt packages for raylib).
+
 ## Release suggestions (human-owned)
 
-- Tag **`v0.1.0`** now that Phase 2 exits (`go run ./cmd/this-city` opens a window).
+- Tag **`v0.1.0`** for Phase 2 (`git tag v0.1.0 && git push origin v0.1.0`) once CI is green on `main`.
 - Further tags at roadmap phase boundaries; see [plan/roadmap.md](plan/roadmap.md).
+- Prefer annotated tags: `git tag -a v0.1.0 -m "v0.1.0"`.

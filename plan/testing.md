@@ -26,11 +26,13 @@
 - **Tick loops:** `for i := 0; i < N; i++ { game.Tick(1.0/60) }` then assert state.
 - **Fake perception:** either real BSP with placed entities or inject blackboard targets for FSM-only tests.
 
-## CI (when code exists)
+## CI
 
-- `go test ./...` on every PR.
-- No GPU requirement for unit tests.
-- Race detector optional on sim/game packages.
+- Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) on pushes to `main` and all pull requests.
+- Runs `go test ./...` and `go build ./cmd/this-city` on Ubuntu (with raylib system deps installed).
+- No GPU / display required for unit tests; the build does not open a window in CI.
+- Release tags `v*`: [`.github/workflows/release.yml`](../.github/workflows/release.yml) builds platform binaries and creates a GitHub Release.
+- Race detector optional on sim/game packages locally (`go test -race ./internal/sim ./internal/game`).
 
 ## Non-goals
 

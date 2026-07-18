@@ -19,7 +19,7 @@ Phased delivery from docs to a 3D-ready layered sim. Exit criteria are practical
 - [x] Go module (`github.com/ridespirals/this-city`), raylib-go v0.60
 - [x] Package skeletons: `internal/sim`, `game`, `render`, `editor`
 - [x] `cmd/this-city`: window, clear color, frame clock, pause (Space), quit (Esc)
-- Suggested tag: `v0.1.0`
+- Suggested tag: `v0.1.0` (GitHub Actions release workflow publishes binaries for `v*` tags)
 
 **Exit:** `go run ./cmd/this-city` opens a window.
 
