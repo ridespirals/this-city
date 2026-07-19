@@ -71,6 +71,7 @@ plan/                     # design docs (source of truth for intent)
 - Followers: `PathFollower` on edges; junctions use `PathDecision` (`DecideRandom` / `DecideRoute`).
 - Default brain: `MachineWalk` / state `walk` on every spawned agent (`game.AttachWalkBrain`).
 - Render strokes `Edge.Poly` only — do not re-sample Béziers in `render`.
+- UI text: Space Mono via `render.Text` / `TextBold` (embedded in `assets/fonts/`); load with `render.LoadFonts` after `InitWindow`.
 - Editor mutations via `game` commands; `editor` stays raylib-free (`FrameInput`).
 - Events: `EventSource`; timed despawn via `TickEvents`.
 - Planned behaviors: travel, patrol, wander, flee — compose with PathDecision + FSM (`plan/agents.md`).

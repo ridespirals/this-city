@@ -111,14 +111,14 @@ func DrawHUD(info FrameInfo) {
 		phase = "dev"
 	}
 	x := int32(DefaultWidth - 360)
-	rl.DrawText("This City", x, 40, 28, rl.RayWhite)
-	rl.DrawText(phase, x, 80, 18, rl.LightGray)
+	TextBold(x, 40, 28, "This City", rl.RayWhite)
+	Text(x, 80, 18, phase, rl.LightGray)
 	status := "running"
 	if info.Paused {
 		status = "paused (Space)"
 	}
-	rl.DrawText(status, x, 110, 18, rl.LightGray)
-	rl.DrawText(fmt.Sprintf("sim time: %.1fs", info.SimTime), x, 140, 18, rl.LightGray)
+	Text(x, 110, 18, status, rl.LightGray)
+	Text(x, 140, 18, fmt.Sprintf("sim time: %.1fs", info.SimTime), rl.LightGray)
 }
 
 // DrawPaths strokes network edge polylines from sim geometry (read-only).
@@ -203,7 +203,7 @@ func DrawWorld(w *sim.World, selected sim.Entity) {
 			rl.RayWhite,
 		)
 		if label != "" {
-			rl.DrawText(label, int32(xf.X)-12, int32(xf.Y)-34, 16, rl.RayWhite)
+			Text(int32(xf.X)-12, int32(xf.Y)-34, 16, label, rl.RayWhite)
 		}
 	})
 }
@@ -222,7 +222,7 @@ func drawEvent(xf sim.Transform2D, ev sim.EventSource, selected bool) {
 	if selected {
 		rl.DrawRectangleLines(int32(xf.X)-14, int32(xf.Y)-14, 28, 28, rl.RayWhite)
 	}
-	rl.DrawText(sim.EventKindName(ev.Kind), int32(xf.X)-20, int32(xf.Y)-28, 14, rl.LightGray)
+	Text(int32(xf.X)-20, int32(xf.Y)-28, 14, sim.EventKindName(ev.Kind), rl.LightGray)
 }
 
 // DrawGhost draws a placement preview at the cursor.

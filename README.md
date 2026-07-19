@@ -56,6 +56,8 @@ AI contributors: see [AGENTS.md](AGENTS.md).
 - Go 1.26+ (module targets the toolchain in `go.mod`)
 - A desktop environment for the raylib window (`go test ./...` does not open a window)
 
+UI typeface: [Space Mono](https://fonts.google.com/specimen/Space+Mono) (SIL OFL), vendored under [`assets/fonts/`](assets/fonts/).
+
 ## Running
 
 ```bash

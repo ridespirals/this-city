@@ -39,7 +39,8 @@ render.Draw(world, editorState)
 
 ## Assets
 
-v1: primitives and colored shapes. Texture/atlas pipeline deferred.
+- UI font: Space Mono (Regular + Bold), embedded from `assets/fonts/`, drawn via `render.Text` / `TextBold`.
+- v1 world: primitives and colored shapes. Texture/atlas pipeline deferred.
 
 ## Testing
 

@@ -20,6 +20,9 @@ func main() {
 	win := render.Open(render.DefaultConfig())
 	defer win.Close()
 
+	uiFonts := render.LoadFonts()
+	defer uiFonts.Unload()
+
 	bg := rl.NewColor(28, 32, 40, 255)
 
 	for !win.ShouldClose() {
