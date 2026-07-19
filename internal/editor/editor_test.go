@@ -80,6 +80,40 @@ func TestDeleteSelectedEntity(t *testing.T) {
 	}
 }
 
+func TestStampPiecePlacesGroup(t *testing.T) {
+	s := game.NewSession(sim.NewWorld())
+	ed := New()
+	ed.SetPieces([]sim.PathPiece{{
+		Name: "unit",
+		Curves: []sim.CubicBezier{{
+			P0: sim.Vec2{X: -50},
+			C0: sim.Vec2{X: -25},
+			C1: sim.Vec2{X: 25},
+			P1: sim.Vec2{X: 50},
+		}},
+	}})
+	ed.SetTool(ToolStampPiece)
+	ed.Update(s, FrameInput{
+		CursorWorld:  sim.Vec2{X: 300, Y: 200},
+		CursorScreen: sim.Vec2{X: 400, Y: 400},
+		LeftPressed:  true,
+	})
+	if s.World.Network.EdgeCount() != 1 {
+		t.Fatalf("edges=%d", s.World.Network.EdgeCount())
+	}
+	if ed.SelectedGroup == 0 {
+		t.Fatal("expected stamp group")
+	}
+	ed.Update(s, FrameInput{
+		CursorWorld:  sim.Vec2{X: 500, Y: 200},
+		CursorScreen: sim.Vec2{X: 400, Y: 400},
+		LeftPressed:  true,
+	})
+	if s.World.Network.EdgeCount() != 2 {
+		t.Fatalf("after second stamp edges=%d", s.World.Network.EdgeCount())
+	}
+}
+
 func TestWorldPickRadiusAccountsForZoom(t *testing.T) {
 	if WorldPickRadius(36, 1) != 36 {
 		t.Fatalf("zoom1=%v", WorldPickRadius(36, 1))

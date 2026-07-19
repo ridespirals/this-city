@@ -4,7 +4,7 @@ This file is the contract for automated assistants working on **This City**. Pre
 
 ## Project in one paragraph
 
-Go + raylib city sim. ECS + FSM-driven agents on a Bézier **Network** (nodes/edges). Default brain is `walk`; `PathDecision` chooses edges at junctions (random now, `DecideRoute` for A*/Dijkstra later). Maps: JSON under `maps/`. Layers: `sim` → `game` → `render`/`editor`. Module: `github.com/ridespirals/this-city`.
+Go + raylib city sim. ECS + FSM-driven agents on a Bézier **Network** (nodes/edges). Default brain is `walk`; `PathDecision` chooses edges at junctions (random now, `DecideRoute` for A*/Dijkstra later). Maps: JSON under `maps/`; SVG authoring/import under `assets/maps/` (`sim.ParseSVG` / `PathPiece` stamp). Layers: `sim` → `game` → `render`/`editor`. Module: `github.com/ridespirals/this-city`.
 
 ## Read first
 
@@ -59,6 +59,8 @@ internal/game/            # session, machines, brain systems (no raylib)
 internal/render/          # raylib window + draw helpers
 internal/editor/          # tool state (tools in Phase 5)
 assets/fonts/             # embedded Space Mono
+assets/maps/              # SVG path sources (embed + stamp pieces)
+cmd/svg2map/              # SVG → map JSON converter
 plan/                     # design docs (source of truth for intent)
 ```
 
@@ -69,10 +71,11 @@ plan/                     # design docs (source of truth for intent)
 - FSM: `sim.Definition` + `AgentBrain`; tick order OnUpdate → transition → OnExit → Action → OnEnter.
 - Guards must be side-effect free; mutate blackboard in actions/hooks only.
 - Register machines on `game.Session.Machines` by string key (`AgentBrain.Machine`).
-- Network: `World.Network` (`Node` / `Edge` + polylines). Map JSON: `plan/map-format.md`, `maps/figure-8.json`.
+- Network: `World.Network` (`Node` / `Edge` + polylines). Map JSON: `plan/map-format.md`, default `maps/dev-map.json` (figure-8 kept as fallback).
+- SVG: `sim.ParseSVG` / `PathPiece` / `StampPiece`; embed via `assets/maps` (`mapsvg.LoadStampPieces`). Convert with `cmd/svg2map`.
 - Followers: `PathFollower` on edges; junctions use `PathDecision` (`DecideRandom` / `DecideRoute`).
 - Default brain: `MachineWalk` / state `walk` on every spawned agent (`game.AttachWalkBrain`).
-- Render strokes `Edge.Poly` only — do not re-sample Béziers in `render`.
+- Render strokes `Edge.Poly` for committed edges; stamp ghosts may use `PathPiece.SampleStroke`.
 - UI text: Space Mono via `render.TextTitle` / `TextBody` / `TextLabel` / `TextCaption` (sizes from `config.C.UI`).
 - Game settings live in `internal/config` (`config.C`). Font pixels = `BasePx * UI.Scale * role` (Title/Body/Label/Caption).
 - Toolbar chrome scales with `UI.Scale` via `UI.Toolbar` / `ToolbarLayout()` — keep hit-testing and draw in sync.
@@ -85,7 +88,7 @@ plan/                     # design docs (source of truth for intent)
 
 ## Current phase
 
-Editor + Figure 8 map + Walk/PathDecision. Next: Phase 6 behavior sets (`plan/agents.md`).
+Editor + SVG maps/stamp pieces + Walk/PathDecision. Next: Phase 6 behavior sets (`plan/agents.md`).
 
 ## Suggested commit style
 

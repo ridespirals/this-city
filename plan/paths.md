@@ -12,7 +12,9 @@ Author and run along streets and walkways as cubic Bezier curves, forming a navi
 | `PathFollower`, junction advance | `internal/sim/path_follow.go` |
 | `PathDecision` | `internal/sim/path_decision.go` |
 | Map JSON | `internal/sim/mapfile.go`, [`maps/`](../maps/) |
-| Demo Figure 8 map | `sim.FigureEightMap`, `game.LoadDemoMap`, `maps/figure-8.json` |
+| SVG import / PathPiece stamp | `sim.ParseSVG`, `StampPiece`, `assets/maps`, `cmd/svg2map` |
+| Default demo map | `maps/dev-map.json` (from `assets/maps/dev-map.svg`) via `game.LoadDemoMap` |
+| Figure-8 sample | `sim.FigureEightMap`, `maps/figure-8.json` |
 | Draw | `render.DrawPaths` uses `Edge.Poly` only |
 
 ## Authoring model

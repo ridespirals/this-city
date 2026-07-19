@@ -6,7 +6,7 @@ Civilians travel between places, hang out in the park, and react to things they 
 
 ## Status
 
-**Editor + Figure 8 map.** Sample streets form a horizontal figure-8 with a center junction. Agents use a default **Walk** brain and **PathDecision** (random at intersections; ready for A* routes). Map: [`maps/figure-8.json`](maps/figure-8.json). Plans in [`plan/`](plan/README.md).
+**Editor + SVG maps.** Default streets load from [`maps/dev-map.json`](maps/dev-map.json) (authored as [`assets/maps/dev-map.svg`](assets/maps/dev-map.svg)). Agents use a default **Walk** brain and **PathDecision**. Stamp SVG path pieces in the editor; figure-8 remains available as a fallback sample. Plans in [`plan/`](plan/README.md).
 
 Next up: Phase 6 — richer civilian/police behaviors (travel, wander, flee, patrol). See the [roadmap](plan/roadmap.md).
 
@@ -66,12 +66,19 @@ Game settings (window, sim clamp, UI scale / font roles) live in [`internal/conf
 go run ./cmd/this-city
 ```
 
-- **1–6** / toolbar — select, civilian, police, event, draw path, edit path  
+- **1–7** / toolbar — select, civilian, police, event, draw path, edit path, stamp SVG  
 - **E** — cycle event kind (crime / distress / attraction / bench)  
+- **P** — cycle stamp piece (SVG paths from `assets/maps/`)  
 - **Del** / **Backspace** — delete selected entity or path  
 - **RMB drag** — pan · **wheel** — zoom  
 - **Space** — pause / resume sim clock  
 - **Esc** or close the window — quit  
+
+Convert an SVG to map JSON:
+
+```bash
+go run ./cmd/svg2map -o maps/dev-map.json assets/maps/dev-map.svg
+```
 
 ```bash
 go test ./...

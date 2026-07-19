@@ -11,9 +11,10 @@ Author city geometry and populate the sim: place agents, events/objects, and dra
 | Tools + `FrameInput` | `internal/editor` |
 | Commands | `internal/game/commands.go` |
 | Events | `internal/sim/event.go`, `game.TickEvents` |
-| Camera / toolbar / input | `internal/render/camera.go`, `toolbar.go`, `CollectEditorInput` |
+| Camera / toolbar / input | `internal/render/camera.go`, `toolbar.go`, `InputTracker` |
+| SVG stamp pieces | `editor.ToolStampPiece`, `mapsvg.LoadStampPieces`, `game.StampPathPiece` |
 
-Hotkeys: `1–6` tools, `E` cycle event kind, `Del` delete, RMB pan, wheel zoom, Space pause.
+Hotkeys: `1–7` tools, `E` cycle event kind, `P` cycle stamp piece, `Del` delete, RMB pan, wheel zoom, Space pause.
 
 ## View
 
@@ -31,6 +32,7 @@ Hotkeys: `1–6` tools, `E` cycle event kind, `Del` delete, RMB pan, wheel zoom,
 | Place event | Sub-menu or cycle: crime, distress, attraction, bench |
 | Draw path | Click to place Bezier anchors / control points |
 | Edit path | Adjust control points of selected segment |
+| Stamp SVG | Place a reusable SVG path piece at the cursor (`P` cycles pieces) |
 
 Keep the toolbar visually simple: one active tool, clear cursor affordance.
 
@@ -42,6 +44,7 @@ All mutations go through command APIs (not ad-hoc component writes from draw cod
 - `SpawnEvent(kind, pos)`
 - `DeleteEntity(id)`
 - `PathAddPoint` / `PathUpdateControl` / `PathCommitSegment`
+- `StampPathPiece(piece, pos)`
 - `SetPaused(bool)`
 
 ## Feedback

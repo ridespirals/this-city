@@ -4,11 +4,32 @@ import (
 	"os"
 	"path/filepath"
 
+	mapsvg "github.com/ridespirals/this-city/assets/maps"
 	"github.com/ridespirals/this-city/internal/sim"
 )
 
-// LoadDemoMap loads maps/figure-8.json when present, else the built-in figure-8 map.
+// LoadDemoMap loads maps/dev-map.json when present, else embedded SVG, else figure-8.
 func LoadDemoMap(w *sim.World) error {
+	if w == nil {
+		return nil
+	}
+	candidates := []string{
+		"maps/dev-map.json",
+		filepath.Join("..", "..", "maps", "dev-map.json"),
+	}
+	for _, p := range candidates {
+		if _, err := os.Stat(p); err == nil {
+			return sim.LoadNetworkFile(p, w.Network)
+		}
+	}
+	if mf, err := mapsvg.DevMapFile(); err == nil {
+		return sim.ApplyMapFile(mf, w.Network)
+	}
+	return sim.ApplyMapFile(sim.FigureEightMap(), w.Network)
+}
+
+// LoadFigureEightMap loads the figure-8 sample (kept as a fallback / test map).
+func LoadFigureEightMap(w *sim.World) error {
 	if w == nil {
 		return nil
 	}

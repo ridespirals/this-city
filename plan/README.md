@@ -4,7 +4,7 @@ Planning docs for the city simulation. Code follows these contracts; when scope 
 
 ## Status
 
-**Current phase:** 5+ — Editor + Figure 8 map, Walk FSM, PathDecision. Next: Phase 6 — richer civilian/police behaviors. See [roadmap.md](roadmap.md).
+**Current phase:** 5+ — Editor + SVG maps/stamp pieces, Walk FSM, PathDecision. Next: Phase 6 — richer civilian/police behaviors. See [roadmap.md](roadmap.md).
 
 ## Locked decisions
 
@@ -26,7 +26,7 @@ Planning docs for the city simulation. Code follows these contracts; when scope 
 | [paths.md](paths.md) | Bezier streets and path following |
 | [spatial.md](spatial.md) | BSP trees and spatial queries |
 | [pathfinding.md](pathfinding.md) | PathDecision, graph, A*/Dijkstra plans |
-| [map-format.md](map-format.md) | JSON map storage (`maps/`) |
+| [map-format.md](map-format.md) | JSON maps + SVG import (`maps/`, `assets/maps/`) |
 | [agents.md](agents.md) | Walk default + civilian/police plans |
 | [events.md](events.md) | Placeable events / objects and responses |
 | [editor.md](editor.md) | 2D overhead toolbar and placement |

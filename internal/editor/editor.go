@@ -18,6 +18,7 @@ const (
 	ToolPlaceEvent
 	ToolDrawPath
 	ToolEditPath
+	ToolStampPiece
 	ToolCount
 )
 
@@ -36,6 +37,8 @@ func ToolName(t Tool) string {
 		return "Draw path"
 	case ToolEditPath:
 		return "Edit path"
+	case ToolStampPiece:
+		return "Stamp SVG"
 	default:
 		return "?"
 	}
@@ -51,6 +54,7 @@ type FrameInput struct {
 	LeftDown      bool
 	DeletePressed bool
 	CycleEvent    bool
+	CyclePiece    bool
 	ToolHotkey    Tool
 	HasToolHotkey bool
 }
@@ -78,6 +82,11 @@ type Editor struct {
 	DraftAnchors []sim.Vec2
 	DraftGroup   uint32
 
+	// Stampable SVG path pieces (recentered local space).
+	Pieces        []sim.PathPiece
+	ActivePiece   int
+	StampMergeEps float32
+
 	Dragging  bool
 	DragEdge  sim.EdgeID
 	DragWhich int // 0=P0/node From, 1=C0, 2=C1, 3=P1/node To
@@ -86,11 +95,41 @@ type Editor struct {
 // New returns an editor with the select tool active.
 func New() *Editor {
 	return &Editor{
-		ActiveTool:   ToolSelect,
-		EventKind:    sim.EventCrime,
-		Selected:     sim.NilEntity,
-		SelectedEdge: sim.NilEdge,
+		ActiveTool:    ToolSelect,
+		EventKind:     sim.EventCrime,
+		Selected:      sim.NilEntity,
+		SelectedEdge:  sim.NilEdge,
+		StampMergeEps: sim.DefaultSVGMergeEps,
 	}
+}
+
+// SetPieces replaces the stamp catalog (usually SVG-imported, recentered pieces).
+func (e *Editor) SetPieces(pieces []sim.PathPiece) {
+	if e == nil {
+		return
+	}
+	e.Pieces = pieces
+	e.ActivePiece = 0
+}
+
+// CurrentPiece returns the active stamp piece, if any.
+func (e *Editor) CurrentPiece() (sim.PathPiece, bool) {
+	if e == nil || len(e.Pieces) == 0 {
+		return sim.PathPiece{}, false
+	}
+	i := e.ActivePiece
+	if i < 0 || i >= len(e.Pieces) {
+		i = 0
+	}
+	return e.Pieces[i], true
+}
+
+// CycleActivePiece advances to the next stamp piece.
+func (e *Editor) CycleActivePiece() {
+	if e == nil || len(e.Pieces) == 0 {
+		return
+	}
+	e.ActivePiece = (e.ActivePiece + 1) % len(e.Pieces)
 }
 
 // SetTool changes the active toolbar tool and clears in-progress drags.
@@ -146,6 +185,9 @@ func (e *Editor) Update(s *game.Session, in FrameInput) {
 	}
 	if in.CycleEvent {
 		e.EventKind = sim.EventKind((int(e.EventKind) + 1) % sim.EventKindCount)
+	}
+	if in.CyclePiece {
+		e.CycleActivePiece()
 	}
 
 	if in.LeftPressed {
@@ -210,6 +252,14 @@ func (e *Editor) onWorldClick(s *game.Session, in FrameInput) {
 				e.DragWhich = which
 			}
 		}
+	case ToolStampPiece:
+		piece, ok := e.CurrentPiece()
+		if !ok {
+			return
+		}
+		e.SelectedGroup = game.StampPathPiece(w, piece, pos, e.StampMergeEps)
+		e.SelectedEdge = sim.NilEdge
+		e.Selected = sim.NilEntity
 	}
 }
 
@@ -244,7 +294,7 @@ func (e *Editor) onDrag(w *sim.World, pos sim.Vec2) {
 }
 
 func (e *Editor) onDelete(w *sim.World) {
-	if e.ActiveTool == ToolEditPath || e.ActiveTool == ToolDrawPath {
+	if e.ActiveTool == ToolEditPath || e.ActiveTool == ToolDrawPath || e.ActiveTool == ToolStampPiece {
 		if e.SelectedGroup != 0 {
 			game.DeletePathGroup(w, e.SelectedGroup)
 			if e.DraftGroup == e.SelectedGroup {

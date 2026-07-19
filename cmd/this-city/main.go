@@ -4,6 +4,7 @@ package main
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 
+	mapsvg "github.com/ridespirals/this-city/assets/maps"
 	"github.com/ridespirals/this-city/internal/config"
 	"github.com/ridespirals/this-city/internal/editor"
 	"github.com/ridespirals/this-city/internal/game"
@@ -18,6 +19,9 @@ func main() {
 	session := game.NewSession(world)
 	session.SpawnDemo()
 	ed := editor.New()
+	if pieces, err := mapsvg.LoadStampPieces(); err == nil {
+		ed.SetPieces(pieces)
+	}
 	cam := render.NewCamera()
 	input := &render.InputTracker{}
 
@@ -58,7 +62,7 @@ func main() {
 		render.DrawHUD(render.FrameInfo{
 			Paused:  session.Paused,
 			SimTime: session.Time,
-			Phase:   "Figure 8 · walk + path decisions",
+			Phase:   "dev-map · walk + path decisions",
 		})
 		render.EndFrame()
 	}

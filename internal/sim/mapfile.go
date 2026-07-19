@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 )
 
 // MapFile is the on-disk / embeddable city map format (nodes + bezier edges).
@@ -75,22 +76,37 @@ func ApplyMapFile(mf MapFile, net *Network) error {
 	return nil
 }
 
-// ExportMapFile serializes the network to a MapFile (stable-ish iteration order not guaranteed).
+// ExportMapFile serializes the network to a MapFile with stable id order.
 func ExportMapFile(name string, net *Network) MapFile {
 	mf := MapFile{Name: name}
 	if net == nil {
 		return mf
 	}
-	nodeNum := make(map[NodeID]uint32)
+	nodeIDs := make([]NodeID, 0, len(net.nodes))
+	for id := range net.nodes {
+		nodeIDs = append(nodeIDs, id)
+	}
+	sort.Slice(nodeIDs, func(i, j int) bool { return nodeIDs[i] < nodeIDs[j] })
+
+	nodeNum := make(map[NodeID]uint32, len(nodeIDs))
 	var next uint32 = 1
-	for id, node := range net.nodes {
+	for _, id := range nodeIDs {
+		node := net.nodes[id]
 		num := next
 		next++
 		nodeNum[id] = num
 		mf.Nodes = append(mf.Nodes, MapFileNode{ID: num, X: node.Pos.X, Y: node.Pos.Y})
 	}
+
+	edgeIDs := make([]EdgeID, 0, len(net.edges))
+	for id := range net.edges {
+		edgeIDs = append(edgeIDs, id)
+	}
+	sort.Slice(edgeIDs, func(i, j int) bool { return edgeIDs[i] < edgeIDs[j] })
+
 	var eNum uint32 = 1
-	for _, e := range net.edges {
+	for _, id := range edgeIDs {
+		e := net.edges[id]
 		mf.Edges = append(mf.Edges, MapFileEdge{
 			ID:   eNum,
 			From: nodeNum[e.From],

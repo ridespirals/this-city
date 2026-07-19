@@ -12,11 +12,12 @@ import (
 type InputTracker struct {
 	leftDown  bool
 	rightDown bool
-	keysDown  [6]bool // 1..6 tool hotkeys
+	keysDown  [7]bool // 1..7 tool hotkeys
 	spaceDown bool
 	escDown   bool
 	delDown   bool
 	eDown     bool
+	pDown     bool
 
 	// App keys sampled in the same Poll as mouse (avoid double PollInputEvents).
 	SpacePressed bool
@@ -52,7 +53,10 @@ func (t *InputTracker) Poll(cam *Camera) editor.FrameInput {
 	}
 	t.leftDown = left
 
-	keyCodes := []int32{rl.KeyOne, rl.KeyTwo, rl.KeyThree, rl.KeyFour, rl.KeyFive, rl.KeySix}
+	keyCodes := []int32{
+		rl.KeyOne, rl.KeyTwo, rl.KeyThree, rl.KeyFour,
+		rl.KeyFive, rl.KeySix, rl.KeySeven,
+	}
 	for i, key := range keyCodes {
 		down := rl.IsKeyDown(key)
 		if down && !t.keysDown[i] {
@@ -69,6 +73,10 @@ func (t *InputTracker) Poll(cam *Camera) editor.FrameInput {
 	eKey := rl.IsKeyDown(rl.KeyE)
 	in.CycleEvent = eKey && !t.eDown
 	t.eDown = eKey
+
+	pKey := rl.IsKeyDown(rl.KeyP)
+	in.CyclePiece = pKey && !t.pDown
+	t.pDown = pKey
 
 	sp := rl.IsKeyDown(rl.KeySpace)
 	t.SpacePressed = sp && !t.spaceDown

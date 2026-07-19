@@ -85,7 +85,7 @@ func Default() Config {
 			Toolbar: Toolbar{
 				X:       16,
 				Y:       16,
-				BtnW:    110,
+				BtnW:    128,
 				BtnH:    32,
 				Gap:     6,
 				Pad:     8,

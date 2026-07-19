@@ -24,7 +24,7 @@ func NewSession(world *sim.World) *Session {
 	}
 }
 
-// SpawnDemo loads the figure-8 sample map and a few random-walking agents.
+// SpawnDemo loads the default sample map and a few random-walking agents.
 func (s *Session) SpawnDemo() {
 	if s == nil || s.World == nil {
 		return

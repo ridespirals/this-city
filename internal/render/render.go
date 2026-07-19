@@ -236,6 +236,19 @@ func DrawGhost(ed *editor.Editor, worldPos sim.Vec2) {
 				rl.NewColor(180, 180, 180, 120),
 			)
 		}
+	case editor.ToolStampPiece:
+		piece, ok := ed.CurrentPiece()
+		if !ok {
+			return
+		}
+		ghost := piece.Translated(worldPos)
+		col := rl.NewColor(180, 200, 220, 160)
+		for _, pts := range ghost.SampleStroke(12) {
+			for i := 1; i < len(pts); i++ {
+				a, b := pts[i-1], pts[i]
+				rl.DrawLineEx(rl.NewVector2(a.X, a.Y), rl.NewVector2(b.X, b.Y), 2, col)
+			}
+		}
 	}
 }
 

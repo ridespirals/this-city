@@ -54,5 +54,12 @@ func DrawToolbar(ed *editor.Editor) {
 	if ed.ActiveTool == editor.ToolDrawPath {
 		hint = "Click anchors to draw · Del removes path · " + hint
 	}
+	if ed.ActiveTool == editor.ToolStampPiece {
+		name := "(no SVG pieces)"
+		if p, ok := ed.CurrentPiece(); ok {
+			name = p.Name
+		}
+		hint = fmt.Sprintf("Stamp: %s (P cycle) · click to place · %s", name, hint)
+	}
 	TextCaption(int32(l.X), hintY, hint, rl.Gray)
 }

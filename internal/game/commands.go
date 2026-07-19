@@ -81,6 +81,16 @@ func DeleteEdge(w *sim.World, id sim.EdgeID) bool {
 	return w.Network.RemoveEdge(id)
 }
 
+// StampPathPiece places a reusable path piece at world position `at`.
+// Returns the editor group id (0 if nothing was stamped).
+func StampPathPiece(w *sim.World, piece sim.PathPiece, at sim.Vec2, mergeEps float32) uint32 {
+	if w == nil || w.Network == nil || len(piece.Curves) == 0 {
+		return 0
+	}
+	g, _ := sim.StampPiece(w.Network, piece, at, mergeEps)
+	return g
+}
+
 // PickEntity returns the nearest entity with a transform within maxDist, or NilEntity.
 func PickEntity(w *sim.World, pos sim.Vec2, maxDist float32) sim.Entity {
 	if w == nil {
