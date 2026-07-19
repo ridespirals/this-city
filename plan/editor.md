@@ -4,6 +4,17 @@
 
 Author city geometry and populate the sim: place agents, events/objects, and draw Bezier paths from an overhead 2D view.
 
+## Implementation (Phase 5)
+
+| Piece | Location |
+|-------|----------|
+| Tools + `FrameInput` | `internal/editor` |
+| Commands | `internal/game/commands.go` |
+| Events | `internal/sim/event.go`, `game.TickEvents` |
+| Camera / toolbar / input | `internal/render/camera.go`, `toolbar.go`, `CollectEditorInput` |
+
+Hotkeys: `1–6` tools, `E` cycle event kind, `Del` delete, RMB pan, wheel zoom, Space pause.
+
 ## View
 
 - Orthographic top-down camera; pan/zoom.

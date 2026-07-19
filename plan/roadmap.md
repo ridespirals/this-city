@@ -47,8 +47,12 @@ Phased delivery from docs to a 3D-ready layered sim. Exit criteria are practical
 
 ## Phase 5 — Editor toolbar
 
-- Tools: select, place civilian/police, place events, draw/edit path.
-- Pause toggle; commands mutate world.
+**Status:** complete.
+
+- [x] Tools: select, place civilian/police, place events, draw/edit path
+- [x] Game commands + `EventSource`; editor `FrameInput` (raylib-free) + tests
+- [x] Camera pan/zoom, toolbar UI, ghosts, path handles
+- [x] Pause toggle; Del deletes selection
 
 **Exit:** Author a tiny scene without recompiling data.
 

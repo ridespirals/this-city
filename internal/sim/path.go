@@ -53,6 +53,29 @@ func (ps *PathSet) Add(segments []CubicBezier) PathID {
 	return id
 }
 
+// SetSegments replaces a path's geometry and rebuilds its polyline.
+func (ps *PathSet) SetSegments(id PathID, segments []CubicBezier) bool {
+	p, ok := ps.Get(id)
+	if !ok {
+		return false
+	}
+	p.Segments = append([]CubicBezier(nil), segments...)
+	p.Rebuild(DefaultPathSamples)
+	return true
+}
+
+// Remove deletes a path. Followers referencing it are not auto-cleared.
+func (ps *PathSet) Remove(id PathID) bool {
+	if ps == nil || id == NilPath {
+		return false
+	}
+	if _, ok := ps.paths[id]; !ok {
+		return false
+	}
+	delete(ps.paths, id)
+	return true
+}
+
 // Get returns a path by id.
 func (ps *PathSet) Get(id PathID) (*Path, bool) {
 	if ps == nil || id == NilPath {
@@ -60,6 +83,26 @@ func (ps *PathSet) Get(id PathID) (*Path, bool) {
 	}
 	p, ok := ps.paths[id]
 	return p, ok
+}
+
+// AnchorsToSegments builds cubic segments between consecutive anchors with
+// straight-line control points at 1/3 and 2/3.
+func AnchorsToSegments(anchors []Vec2) []CubicBezier {
+	if len(anchors) < 2 {
+		return nil
+	}
+	out := make([]CubicBezier, 0, len(anchors)-1)
+	for i := 0; i < len(anchors)-1; i++ {
+		a, b := anchors[i], anchors[i+1]
+		d := b.Sub(a)
+		out = append(out, CubicBezier{
+			P0: a,
+			C0: a.Add(d.Scale(1.0 / 3)),
+			C1: a.Add(d.Scale(2.0 / 3)),
+			P1: b,
+		})
+	}
+	return out
 }
 
 // ForEach invokes fn for each path. Order is unspecified.

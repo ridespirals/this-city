@@ -4,7 +4,7 @@ This file is the contract for automated assistants working on **This City**. Pre
 
 ## Project in one paragraph
 
-Go + raylib city sim. ECS + FSM-driven agents (civilians, police), Bezier street network, path following/pathfinding, BSP spatial queries. Layers: pure `sim` → `game` → `render`/`editor`. Module path: `github.com/ridespirals/this-city`. Phase 4 complete (paths + follower); next is Phase 5 (editor toolbar).
+Go + raylib city sim. ECS + FSM-driven agents (civilians, police), Bezier street network, path following/pathfinding, BSP spatial queries. Layers: pure `sim` → `game` → `render`/`editor`. Module path: `github.com/ridespirals/this-city`. Phase 5 complete (editor); next is Phase 6 (civilian/police FSMs).
 
 ## Read first
 
@@ -70,10 +70,13 @@ plan/                     # design docs (source of truth for intent)
 - Paths: `World.Paths` (`PathSet`) owns `CubicBezier` chains + `Polyline` samples; not ECS entities.
 - Followers: `PathFollower` component; advance via `sim.TickPathFollowers` (ping-pong or clamp at ends).
 - Render must stroke `Path.Poly` from sim — do not re-sample Béziers in `render`.
+- Editor mutations go through `game` commands (`SpawnAgent`, `SpawnEvent`, `DeleteEntity`, `SetPathFromAnchors`, …).
+- `editor` must stay raylib-free: accept `editor.FrameInput`; `render.CollectEditorInput` fills it.
+- Events: `EventSource` component; timed kinds despawn via `TickEvents`.
 
 ## Current phase
 
-**Phase 4 — paths + follower (complete).** Next: Phase 5 — editor toolbar (`plan/editor.md`). Do not skip ahead to full civilian/police FSMs unless asked.
+**Phase 5 — editor (complete).** Next: Phase 6 — civilian + police FSMs (`plan/agents.md`).
 
 ## Suggested commit style
 
@@ -94,4 +97,4 @@ Optional body: motivation, layer touched, doc updates.
 
 - Prefer annotated tags: `git tag -a v0.x.0 -m "v0.x.0"`.
 - Further tags at roadmap phase boundaries; see [plan/roadmap.md](plan/roadmap.md).
-- Suggested tag after Phase 4: **`v0.2.0`** (paths + follower).
+- After editor + agents sandbox (Phase 6): suggested **`v0.3.0`**.

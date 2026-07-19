@@ -4,6 +4,12 @@
 
 Author-time and runtime objects that agents can perceive and respond to—crimes, distress calls, attractions, furniture anchors (benches), etc.
 
+## Implementation
+
+- Component: `sim.EventSource` on `World.Events`
+- Spawn: `game.SpawnEvent`; lifetime despawn: `game.TickEvents`
+- Editor: Place Event tool + `E` to cycle kind
+
 ## Model
 
 Events/objects are entities with:

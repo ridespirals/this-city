@@ -8,6 +8,7 @@ import (
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 
+	"github.com/ridespirals/this-city/internal/editor"
 	"github.com/ridespirals/this-city/internal/sim"
 )
 
@@ -103,69 +104,97 @@ type FrameInfo struct {
 	Phase   string
 }
 
-// DrawHUD paints status text in screen space.
+// DrawHUD paints status text in screen space (top-right-ish).
 func DrawHUD(info FrameInfo) {
 	phase := info.Phase
 	if phase == "" {
 		phase = "dev"
 	}
-	rl.DrawText("This City", 40, 40, 40, rl.RayWhite)
-	rl.DrawText(phase, 40, 100, 20, rl.LightGray)
+	x := int32(DefaultWidth - 360)
+	rl.DrawText("This City", x, 40, 28, rl.RayWhite)
+	rl.DrawText(phase, x, 80, 18, rl.LightGray)
 	status := "running"
 	if info.Paused {
 		status = "paused (Space)"
 	}
-	rl.DrawText(status, 40, 140, 20, rl.LightGray)
-	rl.DrawText(fmt.Sprintf("sim time: %.1fs", info.SimTime), 40, 180, 20, rl.LightGray)
-	rl.DrawText("Esc or close window to quit", 40, 220, 18, rl.Gray)
+	rl.DrawText(status, x, 110, 18, rl.LightGray)
+	rl.DrawText(fmt.Sprintf("sim time: %.1fs", info.SimTime), x, 140, 18, rl.LightGray)
 }
 
 // DrawPaths strokes path polylines from sim geometry (read-only).
-func DrawPaths(w *sim.World) {
+func DrawPaths(w *sim.World, selected sim.PathID) {
 	if w == nil || w.Paths == nil {
 		return
 	}
-	stroke := rl.NewColor(90, 110, 140, 255)
 	w.Paths.ForEach(func(p *sim.Path) {
+		stroke := rl.NewColor(90, 110, 140, 255)
+		width := float32(4)
+		if p.ID == selected {
+			stroke = rl.NewColor(140, 190, 230, 255)
+			width = 6
+		}
 		pts := p.Poly.Points
 		for i := 1; i < len(pts); i++ {
 			a, b := pts[i-1], pts[i]
-			rl.DrawLineEx(
-				rl.NewVector2(a.X, a.Y),
-				rl.NewVector2(b.X, b.Y),
-				4,
-				stroke,
-			)
+			rl.DrawLineEx(rl.NewVector2(a.X, a.Y), rl.NewVector2(b.X, b.Y), width, stroke)
 		}
 	})
 }
 
-// DrawWorld draws agents from sim state (read-only).
-func DrawWorld(w *sim.World) {
+// DrawPathHandles draws Bézier control points for the selected path.
+func DrawPathHandles(w *sim.World, pathID sim.PathID) {
+	if w == nil || pathID == sim.NilPath {
+		return
+	}
+	p, ok := w.Paths.Get(pathID)
+	if !ok {
+		return
+	}
+	for _, seg := range p.Segments {
+		rl.DrawLineEx(rl.NewVector2(seg.P0.X, seg.P0.Y), rl.NewVector2(seg.C0.X, seg.C0.Y), 1, rl.DarkGray)
+		rl.DrawLineEx(rl.NewVector2(seg.P1.X, seg.P1.Y), rl.NewVector2(seg.C1.X, seg.C1.Y), 1, rl.DarkGray)
+		rl.DrawCircle(int32(seg.P0.X), int32(seg.P0.Y), 6, rl.RayWhite)
+		rl.DrawCircle(int32(seg.P1.X), int32(seg.P1.Y), 6, rl.RayWhite)
+		rl.DrawCircle(int32(seg.C0.X), int32(seg.C0.Y), 5, rl.NewColor(220, 180, 80, 255))
+		rl.DrawCircle(int32(seg.C1.X), int32(seg.C1.Y), 5, rl.NewColor(220, 180, 80, 255))
+	}
+}
+
+// DrawWorld draws agents and events from sim state (read-only).
+func DrawWorld(w *sim.World, selected sim.Entity) {
 	if w == nil {
 		return
 	}
 	w.Transforms.ForEach(func(e sim.Entity, xf sim.Transform2D) {
+		if ev, ok := w.Events.Get(e); ok {
+			drawEvent(xf, ev, e == selected)
+			return
+		}
 		color := rl.NewColor(120, 180, 220, 255)
 		label := ""
-		if brain, ok := w.Brains.Get(e); ok {
-			label = string(brain.State)
-			switch brain.BB.Tag {
-			case "alpha":
+		if role, ok := w.Roles.Get(e); ok {
+			switch role.Role {
+			case sim.RoleCivilian:
+				color = rl.NewColor(100, 180, 220, 255)
+				label = "civ"
+			case sim.RolePolice:
+				color = rl.NewColor(80, 120, 220, 255)
+				label = "cop"
+			case sim.RoleDebug:
 				color = rl.NewColor(80, 200, 140, 255)
-			case "beta":
-				color = rl.NewColor(220, 140, 80, 255)
 			}
 		}
-		if _, ok := w.Followers.Get(e); ok && label == "" {
-			color = rl.NewColor(80, 200, 140, 255)
+		if brain, ok := w.Brains.Get(e); ok {
+			label = string(brain.State)
 		}
 		radius := float32(14)
 		if xf.Scale > 0 {
 			radius *= xf.Scale
 		}
 		rl.DrawCircle(int32(xf.X), int32(xf.Y), radius, color)
-		// Facing tick.
+		if e == selected {
+			rl.DrawCircleLines(int32(xf.X), int32(xf.Y), radius+4, rl.RayWhite)
+		}
 		dx := float32(math.Cos(float64(xf.Rotation))) * (radius + 6)
 		dy := float32(math.Sin(float64(xf.Rotation))) * (radius + 6)
 		rl.DrawLineEx(
@@ -175,7 +204,88 @@ func DrawWorld(w *sim.World) {
 			rl.RayWhite,
 		)
 		if label != "" {
-			rl.DrawText(label, int32(xf.X)-20, int32(xf.Y)-36, 18, rl.RayWhite)
+			rl.DrawText(label, int32(xf.X)-12, int32(xf.Y)-34, 16, rl.RayWhite)
 		}
 	})
+}
+
+func drawEvent(xf sim.Transform2D, ev sim.EventSource, selected bool) {
+	color := rl.NewColor(200, 80, 80, 255)
+	switch ev.Kind {
+	case sim.EventDistress:
+		color = rl.NewColor(220, 160, 60, 255)
+	case sim.EventAttraction:
+		color = rl.NewColor(200, 100, 200, 255)
+	case sim.EventBench:
+		color = rl.NewColor(140, 110, 70, 255)
+	}
+	rl.DrawRectangle(int32(xf.X)-10, int32(xf.Y)-10, 20, 20, color)
+	if selected {
+		rl.DrawRectangleLines(int32(xf.X)-14, int32(xf.Y)-14, 28, 28, rl.RayWhite)
+	}
+	rl.DrawText(sim.EventKindName(ev.Kind), int32(xf.X)-20, int32(xf.Y)-28, 14, rl.LightGray)
+}
+
+// DrawGhost draws a placement preview at the cursor.
+func DrawGhost(ed *editor.Editor, worldPos sim.Vec2) {
+	if ed == nil {
+		return
+	}
+	switch ed.ActiveTool {
+	case editor.ToolPlaceCivilian:
+		rl.DrawCircleLines(int32(worldPos.X), int32(worldPos.Y), 14, rl.NewColor(100, 180, 220, 180))
+	case editor.ToolPlacePolice:
+		rl.DrawCircleLines(int32(worldPos.X), int32(worldPos.Y), 14, rl.NewColor(80, 120, 220, 180))
+	case editor.ToolPlaceEvent:
+		rl.DrawRectangleLines(int32(worldPos.X)-10, int32(worldPos.Y)-10, 20, 20, rl.NewColor(200, 200, 200, 180))
+	case editor.ToolDrawPath:
+		rl.DrawCircle(int32(worldPos.X), int32(worldPos.Y), 4, rl.NewColor(200, 200, 200, 180))
+		if n := len(ed.DraftAnchors); n > 0 {
+			last := ed.DraftAnchors[n-1]
+			rl.DrawLineEx(
+				rl.NewVector2(last.X, last.Y),
+				rl.NewVector2(worldPos.X, worldPos.Y),
+				2,
+				rl.NewColor(180, 180, 180, 120),
+			)
+		}
+	}
+}
+
+// CollectEditorInput reads raylib into an editor.FrameInput and updates the camera.
+func CollectEditorInput(cam *Camera, ed *editor.Editor) editor.FrameInput {
+	mouse := rl.GetMousePosition()
+	in := editor.FrameInput{
+		CursorScreen:  sim.Vec2{X: mouse.X, Y: mouse.Y},
+		CursorWorld:   cam.ScreenToWorld(mouse.X, mouse.Y),
+		LeftPressed:   rl.IsMouseButtonPressed(rl.MouseButtonLeft),
+		LeftDown:      rl.IsMouseButtonDown(rl.MouseButtonLeft),
+		DeletePressed: rl.IsKeyPressed(rl.KeyDelete) || rl.IsKeyPressed(rl.KeyBackspace),
+		CycleEvent:    rl.IsKeyPressed(rl.KeyE),
+	}
+
+	for i, key := range []int32{rl.KeyOne, rl.KeyTwo, rl.KeyThree, rl.KeyFour, rl.KeyFive, rl.KeySix} {
+		if rl.IsKeyPressed(key) {
+			in.HasToolHotkey = true
+			in.ToolHotkey = editor.Tool(i)
+			break
+		}
+	}
+
+	if rl.IsMouseButtonDown(rl.MouseButtonRight) {
+		d := rl.GetMouseDelta()
+		cam.Pan(d.X, d.Y)
+	}
+	wheel := rl.GetMouseWheelMove()
+	if wheel != 0 {
+		factor := float32(1.1)
+		if wheel < 0 {
+			factor = 1 / factor
+		}
+		cam.ZoomAt(mouse.X, mouse.Y, factor)
+		in.CursorWorld = cam.ScreenToWorld(mouse.X, mouse.Y)
+	}
+
+	_ = ed
+	return in
 }

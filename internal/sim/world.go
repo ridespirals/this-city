@@ -18,6 +18,7 @@ type World struct {
 	Brains     *ComponentStore[AgentBrain]
 	Roles      *ComponentStore[RoleTag]
 	Followers  *ComponentStore[PathFollower]
+	Events     *ComponentStore[EventSource]
 }
 
 // NewWorld returns an empty simulation world with standard component stores.
@@ -28,8 +29,9 @@ func NewWorld() *World {
 		Brains:     newStore[AgentBrain](),
 		Roles:      newStore[RoleTag](),
 		Followers:  newStore[PathFollower](),
+		Events:     newStore[EventSource](),
 	}
-	w.removers = []remover{w.Transforms, w.Brains, w.Roles, w.Followers}
+	w.removers = []remover{w.Transforms, w.Brains, w.Roles, w.Followers, w.Events}
 	return w
 }
 

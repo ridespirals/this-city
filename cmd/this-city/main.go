@@ -15,7 +15,7 @@ func main() {
 	session := game.NewSession(world)
 	session.SpawnDemo()
 	ed := editor.New()
-	_ = ed // toolbar tools arrive in Phase 5
+	cam := render.NewCamera()
 
 	win := render.Open(render.DefaultConfig())
 	defer win.Close()
@@ -30,17 +30,28 @@ func main() {
 			break
 		}
 
+		in := render.CollectEditorInput(cam, ed)
+		ed.Update(session, in)
+
 		dt := win.FrameDT()
 		dt = sim.ClampDT(dt, render.MaxDT)
 		session.Tick(dt)
 
 		render.BeginFrame(bg)
-		render.DrawPaths(session.World)
-		render.DrawWorld(session.World)
+		cam.Begin()
+		render.DrawPaths(session.World, ed.SelectedPath)
+		if ed.ActiveTool == editor.ToolEditPath || ed.ActiveTool == editor.ToolDrawPath {
+			render.DrawPathHandles(session.World, ed.SelectedPath)
+		}
+		render.DrawWorld(session.World, ed.Selected)
+		render.DrawGhost(ed, in.CursorWorld)
+		cam.End()
+
+		render.DrawToolbar(ed)
 		render.DrawHUD(render.FrameInfo{
 			Paused:  session.Paused,
 			SimTime: session.Time,
-			Phase:   "Phase 4 — paths + follower",
+			Phase:   "Phase 5 — editor",
 		})
 		render.EndFrame()
 	}

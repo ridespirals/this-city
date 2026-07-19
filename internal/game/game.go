@@ -39,6 +39,7 @@ func (s *Session) Tick(dt float32) {
 	s.Time += float64(dt)
 	TickBrains(s.World, s.Machines, dt)
 	sim.TickPathFollowers(s.World, dt)
+	TickEvents(s.World, dt)
 }
 
 // SetPaused freezes or resumes simulation ticks.

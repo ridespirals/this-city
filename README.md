@@ -6,9 +6,9 @@ Civilians travel between places, hang out in the park, and react to things they 
 
 ## Status
 
-**Phase 4 — Bezier paths + follower (complete).** Cubic Bézier streets, polyline sampling, and an agent that ping-pongs along a demo path at constant speed. Plans remain in [`plan/`](plan/README.md).
+**Phase 5 — Editor toolbar (complete).** Place civilians/police/events, draw and edit Bézier paths, select/move/delete, pan/zoom camera. Plans remain in [`plan/`](plan/README.md).
 
-Next up: Phase 5 — Editor toolbar. See the [roadmap](plan/roadmap.md).
+Next up: Phase 6 — Civilian + police FSMs. See the [roadmap](plan/roadmap.md).
 
 ## Stack
 
@@ -62,8 +62,12 @@ AI contributors: see [AGENTS.md](AGENTS.md).
 go run ./cmd/this-city
 ```
 
-- **Space** — pause / resume sim clock
-- **Esc** or close the window — quit
+- **1–6** / toolbar — select, civilian, police, event, draw path, edit path  
+- **E** — cycle event kind (crime / distress / attraction / bench)  
+- **Del** / **Backspace** — delete selected entity or path  
+- **RMB drag** — pan · **wheel** — zoom  
+- **Space** — pause / resume sim clock  
+- **Esc** or close the window — quit  
 
 ```bash
 go test ./...
