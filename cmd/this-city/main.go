@@ -4,6 +4,7 @@ package main
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 
+	"github.com/ridespirals/this-city/internal/config"
 	"github.com/ridespirals/this-city/internal/editor"
 	"github.com/ridespirals/this-city/internal/game"
 	"github.com/ridespirals/this-city/internal/render"
@@ -11,13 +12,15 @@ import (
 )
 
 func main() {
+	// Optional: tweak before Open, e.g. config.C.UI.Scale = 1.25
+
 	world := sim.NewWorld()
 	session := game.NewSession(world)
 	session.SpawnDemo()
 	ed := editor.New()
 	cam := render.NewCamera()
 
-	win := render.Open(render.DefaultConfig())
+	win := render.Open()
 	defer win.Close()
 
 	uiFonts := render.LoadFonts()
@@ -36,8 +39,7 @@ func main() {
 		in := render.CollectEditorInput(cam, ed)
 		ed.Update(session, in)
 
-		dt := win.FrameDT()
-		dt = sim.ClampDT(dt, render.MaxDT)
+		dt := sim.ClampDT(win.FrameDT(), config.C.Sim.MaxDT)
 		session.Tick(dt)
 
 		render.BeginFrame(bg)

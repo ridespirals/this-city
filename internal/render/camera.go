@@ -3,6 +3,7 @@ package render
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 
+	"github.com/ridespirals/this-city/internal/config"
 	"github.com/ridespirals/this-city/internal/sim"
 )
 
@@ -11,12 +12,20 @@ type Camera struct {
 	Inner rl.Camera2D
 }
 
-// NewCamera returns a camera centered on the default window.
+// NewCamera returns a camera centered on the configured window.
 func NewCamera() *Camera {
+	w := config.C.Window.Width
+	h := config.C.Window.Height
+	if w <= 0 {
+		w = 1280
+	}
+	if h <= 0 {
+		h = 720
+	}
 	return &Camera{
 		Inner: rl.Camera2D{
-			Offset:   rl.NewVector2(DefaultWidth/2, DefaultHeight/2),
-			Target:   rl.NewVector2(DefaultWidth/2, DefaultHeight/2),
+			Offset:   rl.NewVector2(float32(w)/2, float32(h)/2),
+			Target:   rl.NewVector2(float32(w)/2, float32(h)/2),
 			Rotation: 0,
 			Zoom:     1,
 		},

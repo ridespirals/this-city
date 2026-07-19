@@ -53,10 +53,12 @@ Do not leave docs contradicting the code or the agreed plan.
 
 ```
 cmd/this-city/main.go     # window + loop wiring
+internal/config/          # process-wide Config (window, sim, UI scale/fonts)
 internal/sim/             # ECS world, stores, FSM engine (no raylib)
 internal/game/            # session, machines, brain systems (no raylib)
 internal/render/          # raylib window + draw helpers
 internal/editor/          # tool state (tools in Phase 5)
+assets/fonts/             # embedded Space Mono
 plan/                     # design docs (source of truth for intent)
 ```
 
@@ -71,7 +73,9 @@ plan/                     # design docs (source of truth for intent)
 - Followers: `PathFollower` on edges; junctions use `PathDecision` (`DecideRandom` / `DecideRoute`).
 - Default brain: `MachineWalk` / state `walk` on every spawned agent (`game.AttachWalkBrain`).
 - Render strokes `Edge.Poly` only — do not re-sample Béziers in `render`.
-- UI text: Space Mono via `render.Text` / `TextBold` (embedded in `assets/fonts/`); load with `render.LoadFonts` after `InitWindow`.
+- UI text: Space Mono via `render.TextTitle` / `TextBody` / `TextLabel` / `TextCaption` (sizes from `config.C.UI`).
+- Game settings live in `internal/config` (`config.C`). Font pixels = `BasePx * UI.Scale * role` (Title/Body/Label/Caption).
+- Load fonts with `render.LoadFonts` after `InitWindow`.
 - Editor mutations via `game` commands; `editor` stays raylib-free (`FrameInput`).
 - Events: `EventSource`; timed despawn via `TickEvents`.
 - Planned behaviors: travel, patrol, wander, flee — compose with PathDecision + FSM (`plan/agents.md`).

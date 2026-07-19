@@ -39,7 +39,9 @@ render.Draw(world, editorState)
 
 ## Assets
 
-- UI font: Space Mono (Regular + Bold), embedded from `assets/fonts/`, drawn via `render.Text` / `TextBold`.
+- UI font: Space Mono (Regular + Bold), embedded from `assets/fonts/`.
+- Sizes from `internal/config`: `UI.Scale` × `Font.BasePx` × relative role (`Title`, `Body`, `Label`, `Caption`).
+- Draw helpers: `render.TextTitle` / `TextBody` / `TextLabel` / `TextCaption`.
 - v1 world: primitives and colored shapes. Texture/atlas pipeline deferred.
 
 ## Testing

@@ -8,57 +8,35 @@ import (
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 
+	"github.com/ridespirals/this-city/internal/config"
 	"github.com/ridespirals/this-city/internal/editor"
 	"github.com/ridespirals/this-city/internal/sim"
 )
 
-const (
-	DefaultWidth  = 1280
-	DefaultHeight = 720
-	DefaultTitle  = "This City"
-	MaxDT         = 0.1 // seconds; hitch clamp for the frame clock
-)
-
-// Config controls window creation.
-type Config struct {
-	Width     int32
-	Height    int32
-	Title     string
-	TargetFPS int32
-}
-
-// DefaultConfig returns sensible window defaults.
-func DefaultConfig() Config {
-	return Config{
-		Width:     DefaultWidth,
-		Height:    DefaultHeight,
-		Title:     DefaultTitle,
-		TargetFPS: 60,
-	}
-}
-
 // Window wraps raylib window lifecycle.
 type Window struct {
-	cfg Config
+	width  int32
+	height int32
 }
 
-// Open creates the raylib window and sets the target frame rate.
-func Open(cfg Config) *Window {
+// Open creates the raylib window from config.C.Window.
+func Open() *Window {
+	cfg := config.C.Window
 	if cfg.Width <= 0 {
-		cfg.Width = DefaultWidth
+		cfg.Width = 1280
 	}
 	if cfg.Height <= 0 {
-		cfg.Height = DefaultHeight
+		cfg.Height = 720
 	}
 	if cfg.Title == "" {
-		cfg.Title = DefaultTitle
+		cfg.Title = "This City"
 	}
 	if cfg.TargetFPS <= 0 {
 		cfg.TargetFPS = 60
 	}
 	rl.InitWindow(cfg.Width, cfg.Height, cfg.Title)
 	rl.SetTargetFPS(cfg.TargetFPS)
-	return &Window{cfg: cfg}
+	return &Window{width: cfg.Width, height: cfg.Height}
 }
 
 // Close shuts down the raylib window.
@@ -77,8 +55,12 @@ func (w *Window) ShouldClose() bool {
 // FrameDT returns the last frame time in seconds, clamped for sim stability.
 func (w *Window) FrameDT() float32 {
 	dt := rl.GetFrameTime()
-	if dt > MaxDT {
-		return MaxDT
+	max := config.C.Sim.MaxDT
+	if max <= 0 {
+		max = 0.1
+	}
+	if dt > max {
+		return max
 	}
 	if dt < 0 {
 		return 0
@@ -110,15 +92,19 @@ func DrawHUD(info FrameInfo) {
 	if phase == "" {
 		phase = "dev"
 	}
-	x := int32(DefaultWidth - 360)
-	TextBold(x, 40, 28, "This City", rl.RayWhite)
-	Text(x, 80, 18, phase, rl.LightGray)
+	width := config.C.Window.Width
+	if width <= 0 {
+		width = 1280
+	}
+	x := width - 360
+	TextTitle(x, 40, "This City", rl.RayWhite)
+	TextBody(x, 80, phase, rl.LightGray)
 	status := "running"
 	if info.Paused {
 		status = "paused (Space)"
 	}
-	Text(x, 110, 18, status, rl.LightGray)
-	Text(x, 140, 18, fmt.Sprintf("sim time: %.1fs", info.SimTime), rl.LightGray)
+	TextBody(x, 110, status, rl.LightGray)
+	TextBody(x, 140, fmt.Sprintf("sim time: %.1fs", info.SimTime), rl.LightGray)
 }
 
 // DrawPaths strokes network edge polylines from sim geometry (read-only).
@@ -203,7 +189,7 @@ func DrawWorld(w *sim.World, selected sim.Entity) {
 			rl.RayWhite,
 		)
 		if label != "" {
-			Text(int32(xf.X)-12, int32(xf.Y)-34, 16, label, rl.RayWhite)
+			TextLabel(int32(xf.X)-12, int32(xf.Y)-34, label, rl.RayWhite)
 		}
 	})
 }
@@ -222,7 +208,7 @@ func drawEvent(xf sim.Transform2D, ev sim.EventSource, selected bool) {
 	if selected {
 		rl.DrawRectangleLines(int32(xf.X)-14, int32(xf.Y)-14, 28, 28, rl.RayWhite)
 	}
-	Text(int32(xf.X)-20, int32(xf.Y)-28, 14, sim.EventKindName(ev.Kind), rl.LightGray)
+	TextCaption(int32(xf.X)-20, int32(xf.Y)-28, sim.EventKindName(ev.Kind), rl.LightGray)
 }
 
 // DrawGhost draws a placement preview at the cursor.

@@ -58,6 +58,8 @@ AI contributors: see [AGENTS.md](AGENTS.md).
 
 UI typeface: [Space Mono](https://fonts.google.com/specimen/Space+Mono) (SIL OFL), vendored under [`assets/fonts/`](assets/fonts/).
 
+Game settings (window, sim clamp, UI scale / font roles) live in [`internal/config`](internal/config/config.go). Example: set `config.C.UI.Scale = 1.25` before opening the window for larger UI text.
+
 ## Running
 
 ```bash

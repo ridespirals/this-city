@@ -35,7 +35,7 @@ func DrawToolbar(ed *editor.Editor) {
 		}
 		rl.DrawRectangle(int32(x), int32(y), int32(editor.ToolbarBtnW), int32(editor.ToolbarBtnH), bg)
 		label := fmt.Sprintf("%d %s", int(t)+1, editor.ToolName(t))
-		Text(int32(x+8), int32(y+8), 16, label, fg)
+		TextLabel(int32(x+8), int32(y+8), label, fg)
 		y += editor.ToolbarBtnH + editor.ToolbarGap
 	}
 
@@ -47,5 +47,5 @@ func DrawToolbar(ed *editor.Editor) {
 	if ed.ActiveTool == editor.ToolDrawPath {
 		hint = "Click anchors to draw · Del removes path · " + hint
 	}
-	Text(int32(editor.ToolbarX), hintY, 14, hint, rl.Gray)
+	TextCaption(int32(editor.ToolbarX), hintY, hint, rl.Gray)
 }
