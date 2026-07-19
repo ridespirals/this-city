@@ -19,6 +19,11 @@ jobs:
             goos: linux
             goarch: amd64
             ext: ""
+          # Native CGO/raylib builds: Intel and Apple Silicon separately.
+          - os: macos-13
+            goos: darwin
+            goarch: amd64
+            ext: ""
           - os: macos-latest
             goos: darwin
             goarch: arm64
@@ -57,15 +62,37 @@ jobs:
 
       - name: Build
         env:
+          CGO_ENABLED: "1"
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
-        run: go build -trimpath -ldflags="-s -w" -o "dist/this-city-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}" ./cmd/this-city
+        run: |
+          mkdir -p dist
+          go build -trimpath -ldflags="-s -w" \
+            -o "dist/this-city-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}" \
+            ./cmd/this-city
+
+      - name: Package zip
+        shell: bash
+        run: |
+          name="this-city-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}"
+          chmod +x "dist/${name}" || true
+          # Zip preserves Unix executable bits; raw release downloads often do not.
+          if command -v zip >/dev/null 2>&1; then
+            (cd dist && zip -9 "${name}.zip" "${name}")
+          else
+            # Fallback on runners without zip (rare).
+            (cd dist && tar -czf "${name}.tar.gz" "${name}")
+          fi
+          rm -f "dist/${name}"
+          ls -la dist
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: this-city-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: dist/this-city-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
+          path: |
+            dist/*.zip
+            dist/*.tar.gz
           if-no-files-found: error
 
   release:

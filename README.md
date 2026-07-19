@@ -89,7 +89,16 @@ go test ./...
 | Workflow | Trigger | What it does |
 |----------|---------|----------------|
 | [CI](.github/workflows/ci.yml) | Pushes to `main`, all pull requests | `go test ./...` and build `cmd/this-city` on Ubuntu |
-| [Release](.github/workflows/release.yml) | Tags matching `v*` (e.g. `v0.1.0`) | Test, build Linux/macOS/Windows binaries, publish a GitHub Release |
+| [Release](.github/workflows/release.yml) | Tags matching `v*` (e.g. `v0.1.0`) | Test, build zipped Linux/macOS/Windows binaries, publish a GitHub Release |
+
+Release assets are **zip archives** (so the Unix executable bit survives download). macOS ships both:
+
+| Asset | Machine |
+|-------|---------|
+| `this-city-darwin-arm64.zip` | Apple Silicon (`uname -m` → `arm64`) |
+| `this-city-darwin-amd64.zip` | Intel (`uname -m` → `x86_64`) |
+
+Unzip, then run from Terminal (Gatekeeper may require right-click → Open the first time; builds are unsigned).
 
 Tag a release (after pushing the commit you want tagged):
 
