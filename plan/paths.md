@@ -12,7 +12,7 @@ Author and run along streets and walkways as cubic Bezier curves, forming a navi
 | `PathFollower`, junction advance | `internal/sim/path_follow.go` |
 | `PathDecision` | `internal/sim/path_decision.go` |
 | Map JSON | `internal/sim/mapfile.go`, [`maps/`](../maps/) |
-| Demo ⌘ map | `sim.CommandKeyMap`, `game.LoadDemoMap` |
+| Demo Figure 8 map | `sim.FigureEightMap`, `game.LoadDemoMap`, `maps/figure-8.json` |
 | Draw | `render.DrawPaths` uses `Edge.Poly` only |
 
 ## Authoring model

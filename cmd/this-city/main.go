@@ -19,6 +19,7 @@ func main() {
 	session.SpawnDemo()
 	ed := editor.New()
 	cam := render.NewCamera()
+	input := &render.InputTracker{}
 
 	win := render.Open()
 	defer win.Close()
@@ -29,14 +30,15 @@ func main() {
 	bg := rl.NewColor(28, 32, 40, 255)
 
 	for !win.ShouldClose() {
-		if rl.IsKeyPressed(rl.KeySpace) {
+		// Poll once per frame (edge-detect), then update, then draw.
+		in := input.Poll(cam)
+		if input.SpacePressed {
 			session.TogglePause()
 		}
-		if rl.IsKeyPressed(rl.KeyEscape) {
+		if input.EscPressed {
 			break
 		}
 
-		in := render.CollectEditorInput(cam, ed)
 		ed.Update(session, in)
 
 		dt := sim.ClampDT(win.FrameDT(), config.C.Sim.MaxDT)
@@ -56,7 +58,7 @@ func main() {
 		render.DrawHUD(render.FrameInfo{
 			Paused:  session.Paused,
 			SimTime: session.Time,
-			Phase:   "⌘ map · walk + path decisions",
+			Phase:   "Figure 8 · walk + path decisions",
 		})
 		render.EndFrame()
 	}

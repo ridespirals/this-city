@@ -69,20 +69,23 @@ plan/                     # design docs (source of truth for intent)
 - FSM: `sim.Definition` + `AgentBrain`; tick order OnUpdate → transition → OnExit → Action → OnEnter.
 - Guards must be side-effect free; mutate blackboard in actions/hooks only.
 - Register machines on `game.Session.Machines` by string key (`AgentBrain.Machine`).
-- Network: `World.Network` (`Node` / `Edge` + polylines). Map JSON: `plan/map-format.md`, `maps/command-key.json`.
+- Network: `World.Network` (`Node` / `Edge` + polylines). Map JSON: `plan/map-format.md`, `maps/figure-8.json`.
 - Followers: `PathFollower` on edges; junctions use `PathDecision` (`DecideRandom` / `DecideRoute`).
 - Default brain: `MachineWalk` / state `walk` on every spawned agent (`game.AttachWalkBrain`).
 - Render strokes `Edge.Poly` only — do not re-sample Béziers in `render`.
 - UI text: Space Mono via `render.TextTitle` / `TextBody` / `TextLabel` / `TextCaption` (sizes from `config.C.UI`).
 - Game settings live in `internal/config` (`config.C`). Font pixels = `BasePx * UI.Scale * role` (Title/Body/Label/Caption).
-- Load fonts with `render.LoadFonts` after `InitWindow`.
+- Toolbar chrome scales with `UI.Scale` via `UI.Toolbar` / `ToolbarLayout()` — keep hit-testing and draw in sync.
+- Load fonts with `render.LoadFonts` after `InitWindow`. Pass explicit codepoints (ASCII+Latin-1); nil defaults to ASCII-only and turns `·` into `?`.
+- Picking uses screen-pixel radii converted by camera zoom (`editor.WorldPickRadius`); toolbar clicks are consumed for the whole panel, not only button rects.
+- Input: keep a long-lived `render.InputTracker` and edge-detect from `IsMouseButtonDown` / `IsKeyDown` (do not rely only on raylib's one-frame `Is*Pressed`). Poll once per frame before updates.
 - Editor mutations via `game` commands; `editor` stays raylib-free (`FrameInput`).
 - Events: `EventSource`; timed despawn via `TickEvents`.
 - Planned behaviors: travel, patrol, wander, flee — compose with PathDecision + FSM (`plan/agents.md`).
 
 ## Current phase
 
-Editor + ⌘ map + Walk/PathDecision. Next: Phase 6 behavior sets (`plan/agents.md`).
+Editor + Figure 8 map + Walk/PathDecision. Next: Phase 6 behavior sets (`plan/agents.md`).
 
 ## Suggested commit style
 

@@ -5,30 +5,30 @@ import (
 	"testing"
 )
 
-func TestCommandKeyMapLoads(t *testing.T) {
+func TestFigureEightMapLoads(t *testing.T) {
 	w := NewWorld()
-	if err := ApplyMapFile(CommandKeyMap(), w.Network); err != nil {
+	if err := ApplyMapFile(FigureEightMap(), w.Network); err != nil {
 		t.Fatal(err)
 	}
-	if w.Network.NodeCount() != 8 || w.Network.EdgeCount() != 12 {
+	if w.Network.NodeCount() != 3 || w.Network.EdgeCount() != 4 {
 		t.Fatalf("nodes=%d edges=%d", w.Network.NodeCount(), w.Network.EdgeCount())
 	}
-	var mt NodeID
+	var center NodeID
 	for id, n := range w.Network.nodes {
-		if n.Pos.X == 640 && n.Pos.Y == 250 {
-			mt = id
+		if n.Pos.X == 640 && n.Pos.Y == 360 {
+			center = id
 			break
 		}
 	}
-	if mt == NilNode || len(w.Network.IncidentEdges(mt)) != 4 {
-		t.Fatalf("Mt id=%d degree=%d want 4", mt, len(w.Network.IncidentEdges(mt)))
+	if center == NilNode || len(w.Network.IncidentEdges(center)) != 4 {
+		t.Fatalf("center id=%d degree=%d want 4", center, len(w.Network.IncidentEdges(center)))
 	}
 }
 
 func TestFollowerChoosesAtJunction(t *testing.T) {
 	w := NewWorld()
 	w.RNG = rand.New(rand.NewSource(42))
-	if err := ApplyMapFile(CommandKeyMap(), w.Network); err != nil {
+	if err := ApplyMapFile(FigureEightMap(), w.Network); err != nil {
 		t.Fatal(err)
 	}
 	var start EdgeID
@@ -74,7 +74,7 @@ func TestDecideRouteOverridesRandom(t *testing.T) {
 }
 
 func TestMapFileRoundTripJSON(t *testing.T) {
-	mf := CommandKeyMap()
+	mf := FigureEightMap()
 	data, err := MarshalMapFile(mf)
 	if err != nil {
 		t.Fatal(err)
@@ -83,7 +83,7 @@ func TestMapFileRoundTripJSON(t *testing.T) {
 	if err := LoadNetworkJSON(data, w.Network); err != nil {
 		t.Fatal(err)
 	}
-	if w.Network.EdgeCount() != 12 {
+	if w.Network.EdgeCount() != 4 {
 		t.Fatalf("edges=%d", w.Network.EdgeCount())
 	}
 }

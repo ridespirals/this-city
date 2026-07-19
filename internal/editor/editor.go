@@ -3,6 +3,7 @@
 package editor
 
 import (
+	"github.com/ridespirals/this-city/internal/config"
 	"github.com/ridespirals/this-city/internal/game"
 	"github.com/ridespirals/this-city/internal/sim"
 )
@@ -40,26 +41,30 @@ func ToolName(t Tool) string {
 	}
 }
 
-// Toolbar layout (screen space) — keep in sync with render.DrawToolbar.
-const (
-	ToolbarX    float32 = 16
-	ToolbarY    float32 = 16
-	ToolbarBtnW float32 = 110
-	ToolbarBtnH float32 = 32
-	ToolbarGap  float32 = 6
-	ToolbarPad  float32 = 8
-)
-
 // FrameInput is a raylib-free snapshot of one frame of editor input.
 type FrameInput struct {
 	CursorWorld   sim.Vec2
 	CursorScreen  sim.Vec2
-	LeftPressed   bool
+	Zoom          float32 // camera zoom; used to convert screen pick radii to world
+	LeftPressed   bool    // down-edge (preferred for buttons)
+	LeftReleased  bool    // up-edge
 	LeftDown      bool
 	DeletePressed bool
 	CycleEvent    bool
 	ToolHotkey    Tool
 	HasToolHotkey bool
+}
+
+// WorldPickRadius converts a screen-pixel pick tolerance into world units.
+func WorldPickRadius(screenPx, zoom float32) float32 {
+	if zoom < 0.05 {
+		zoom = 0.05
+	}
+	r := screenPx / zoom
+	if r < 20 {
+		return 20
+	}
+	return r
 }
 
 // Editor holds UI/tool state that is not part of the sim world.
@@ -107,21 +112,26 @@ func (e *Editor) clearDraft() {
 
 // ToolbarHit returns the tool under screen position, or false.
 func ToolbarHit(screen sim.Vec2) (Tool, bool) {
-	x := ToolbarX + ToolbarPad
-	y := ToolbarY + ToolbarPad
+	l := config.C.UI.ToolbarLayout()
+	x := l.X + l.Pad
+	y := l.Y + l.Pad
 	for t := Tool(0); t < ToolCount; t++ {
-		if screen.X >= x && screen.X < x+ToolbarBtnW &&
-			screen.Y >= y && screen.Y < y+ToolbarBtnH {
+		if screen.X >= x && screen.X < x+l.BtnW &&
+			screen.Y >= y && screen.Y < y+l.BtnH {
 			return t, true
 		}
-		y += ToolbarBtnH + ToolbarGap
+		y += l.BtnH + l.Gap
 	}
 	return 0, false
 }
 
-// ToolbarHeight is the total screen height of the toolbar panel.
-func ToolbarHeight() float32 {
-	return ToolbarPad*2 + float32(ToolCount)*ToolbarBtnH + float32(ToolCount-1)*ToolbarGap
+// ToolbarContains reports whether screen is over the toolbar panel (including gaps).
+func ToolbarContains(screen sim.Vec2) bool {
+	l := config.C.UI.ToolbarLayout()
+	w := l.Width()
+	h := l.Height(int(ToolCount))
+	return screen.X >= l.X && screen.X < l.X+w &&
+		screen.Y >= l.Y && screen.Y < l.Y+h
 }
 
 // Update applies one frame of input against the session via game commands.
@@ -141,9 +151,11 @@ func (e *Editor) Update(s *game.Session, in FrameInput) {
 	if in.LeftPressed {
 		if tool, ok := ToolbarHit(in.CursorScreen); ok {
 			e.SetTool(tool)
-			return
+		} else if ToolbarContains(in.CursorScreen) {
+			// Consume clicks on toolbar chrome/gaps so they don't hit the world.
+		} else {
+			e.onWorldClick(s, in)
 		}
-		e.onWorldClick(s, in.CursorWorld)
 	}
 
 	if e.Dragging && in.LeftDown {
@@ -158,11 +170,17 @@ func (e *Editor) Update(s *game.Session, in FrameInput) {
 	}
 }
 
-func (e *Editor) onWorldClick(s *game.Session, pos sim.Vec2) {
+func (e *Editor) onWorldClick(s *game.Session, in FrameInput) {
 	w := s.World
+	pos := in.CursorWorld
+	zoom := in.Zoom
+	if zoom <= 0 {
+		zoom = 1
+	}
 	switch e.ActiveTool {
 	case ToolSelect:
-		e.Selected = game.PickEntity(w, pos, 24)
+		// ~36 screen px — agents move; don't require a perfect center hit.
+		e.Selected = game.PickEntity(w, pos, WorldPickRadius(36, zoom))
 		e.SelectedEdge = sim.NilEdge
 		if !e.Selected.IsNil() {
 			e.Dragging = true
@@ -181,12 +199,12 @@ func (e *Editor) onWorldClick(s *game.Session, pos sim.Vec2) {
 		}
 	case ToolEditPath:
 		e.Selected = sim.NilEntity
-		e.SelectedEdge = game.PickEdge(w, pos, 20)
+		e.SelectedEdge = game.PickEdge(w, pos, WorldPickRadius(28, zoom))
 		if e.SelectedEdge != sim.NilEdge {
 			if edge, ok := w.Network.GetEdge(e.SelectedEdge); ok {
 				e.SelectedGroup = edge.Group
 			}
-			if which, ok := pickHandle(w, e.SelectedEdge, pos, 14); ok {
+			if which, ok := pickHandle(w, e.SelectedEdge, pos, WorldPickRadius(18, zoom)); ok {
 				e.Dragging = true
 				e.DragEdge = e.SelectedEdge
 				e.DragWhich = which

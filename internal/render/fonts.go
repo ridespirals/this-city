@@ -18,20 +18,45 @@ type UIFonts struct {
 var Active *UIFonts
 
 // LoadFonts uploads Space Mono into GPU memory. Call after InitWindow.
+//
+// Raylib's default atlas is ASCII-only (32–126). Passing nil codepoints therefore
+// drops glyphs like "·" (U+00B7), which then draw as "?".
+//
+// Note: Space Mono does not include "⌘" (U+2318). Browsers/Google Fonts fake it
+// via fallback fonts; raylib will still show "?" for missing glyphs.
 func LoadFonts() *UIFonts {
 	atlas := config.C.UI.Font.AtlasSize
 	if atlas <= 0 {
 		atlas = 64
 	}
+	codepoints := uiCodepoints()
 	f := &UIFonts{
-		Regular: rl.LoadFontFromMemory(".ttf", fonts.SpaceMonoRegular, atlas, nil),
-		Bold:    rl.LoadFontFromMemory(".ttf", fonts.SpaceMonoBold, atlas, nil),
+		Regular: rl.LoadFontFromMemory(".ttf", fonts.SpaceMonoRegular, atlas, codepoints),
+		Bold:    rl.LoadFontFromMemory(".ttf", fonts.SpaceMonoBold, atlas, codepoints),
 		ok:      true,
 	}
 	rl.SetTextureFilter(f.Regular.Texture, rl.FilterBilinear)
 	rl.SetTextureFilter(f.Bold.Texture, rl.FilterBilinear)
 	Active = f
 	return f
+}
+
+// uiCodepoints is ASCII + Latin-1 Supplement, plus a few punctuation glyphs
+// that Space Mono actually contains (verified via font cmap).
+func uiCodepoints() []rune {
+	// 32–255 covers basic Latin and Latin-1 (includes · U+00B7).
+	cps := make([]rune, 0, 256-32+8)
+	for r := rune(32); r <= 255; r++ {
+		cps = append(cps, r)
+	}
+	extras := []rune{
+		'—', // em dash
+		'–', // en dash
+		'…', // ellipsis
+		'•', // bullet
+	}
+	cps = append(cps, extras...)
+	return cps
 }
 
 // Unload releases GPU font resources.

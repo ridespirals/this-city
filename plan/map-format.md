@@ -10,14 +10,14 @@ Located under [`maps/`](../maps/). Schema:
 
 ```json
 {
-  "name": "command-key",
-  "nodes": [{"id": 1, "x": 640, "y": 250}],
+  "name": "figure-8",
+  "nodes": [{"id": 1, "x": 640, "y": 360}],
   "edges": [{
     "id": 1,
     "from": 1,
-    "to": 5,
-    "c0": {"x": 520, "y": 180},
-    "c1": {"x": 420, "y": 180}
+    "to": 2,
+    "c0": {"x": 560, "y": 220},
+    "c1": {"x": 420, "y": 220}
   }]
 }
 ```
@@ -34,18 +34,18 @@ Located under [`maps/`](../maps/). Schema:
 | API | Package |
 |-----|---------|
 | `MapFile`, `LoadNetworkJSON`, `LoadNetworkFile`, `ApplyMapFile`, `ExportMapFile` | `internal/sim/mapfile.go` |
-| Built-in ⌘ map | `sim.CommandKeyMap()` + [`maps/command-key.json`](../maps/command-key.json) |
+| Built-in Figure 8 map | `sim.FigureEightMap()` + [`maps/figure-8.json`](../maps/figure-8.json) |
 | Demo loader | `game.LoadDemoMap` (file if present, else built-in) |
 
-## Sample map: command-key (⌘)
+## Sample map: figure-8
 
-Two horizontal figure-8s stacked so they share left/right junctions:
+Classic horizontal ∞:
 
-- **Mt / Mb** — crossings of the top and bottom 8s (degree 4)
-- **JL / JR** — stack intersections (degree 4)
-- **Lt, Rt, Lb, Rb** — outer lobe tips
+- **Center** — degree-4 crossing
+- **Left / right tips** — lobe endpoints
+- **Four arcs** — upper/lower left and upper/lower right
 
-Agents use [`PathDecision`](pathfinding.md) at every junction.
+Agents use [`PathDecision`](pathfinding.md) at the center junction.
 
 ## Future
 

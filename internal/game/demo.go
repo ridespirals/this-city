@@ -7,21 +7,21 @@ import (
 	"github.com/ridespirals/this-city/internal/sim"
 )
 
-// LoadDemoMap loads maps/command-key.json when present, else the built-in ⌘ map.
+// LoadDemoMap loads maps/figure-8.json when present, else the built-in figure-8 map.
 func LoadDemoMap(w *sim.World) error {
 	if w == nil {
 		return nil
 	}
 	candidates := []string{
-		"maps/command-key.json",
-		filepath.Join("..", "..", "maps", "command-key.json"),
+		"maps/figure-8.json",
+		filepath.Join("..", "..", "maps", "figure-8.json"),
 	}
 	for _, p := range candidates {
 		if _, err := os.Stat(p); err == nil {
 			return sim.LoadNetworkFile(p, w.Network)
 		}
 	}
-	return sim.ApplyMapFile(sim.CommandKeyMap(), w.Network)
+	return sim.ApplyMapFile(sim.FigureEightMap(), w.Network)
 }
 
 // SpawnPathFollower creates a walking agent on edgeID.

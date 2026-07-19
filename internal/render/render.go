@@ -36,6 +36,8 @@ func Open() *Window {
 	}
 	rl.InitWindow(cfg.Width, cfg.Height, cfg.Title)
 	rl.SetTargetFPS(cfg.TargetFPS)
+	// Prefer continuous polling so short clicks are not deferred to event-wait.
+	rl.DisableEventWaiting()
 	return &Window{width: cfg.Width, height: cfg.Height}
 }
 
@@ -237,40 +239,10 @@ func DrawGhost(ed *editor.Editor, worldPos sim.Vec2) {
 	}
 }
 
-// CollectEditorInput reads raylib into an editor.FrameInput and updates the camera.
+// CollectEditorInput is a convenience wrapper around a throwaway InputTracker.
+// Prefer keeping a long-lived *InputTracker so edge detection stays correct.
 func CollectEditorInput(cam *Camera, ed *editor.Editor) editor.FrameInput {
-	mouse := rl.GetMousePosition()
-	in := editor.FrameInput{
-		CursorScreen:  sim.Vec2{X: mouse.X, Y: mouse.Y},
-		CursorWorld:   cam.ScreenToWorld(mouse.X, mouse.Y),
-		LeftPressed:   rl.IsMouseButtonPressed(rl.MouseButtonLeft),
-		LeftDown:      rl.IsMouseButtonDown(rl.MouseButtonLeft),
-		DeletePressed: rl.IsKeyPressed(rl.KeyDelete) || rl.IsKeyPressed(rl.KeyBackspace),
-		CycleEvent:    rl.IsKeyPressed(rl.KeyE),
-	}
-
-	for i, key := range []int32{rl.KeyOne, rl.KeyTwo, rl.KeyThree, rl.KeyFour, rl.KeyFive, rl.KeySix} {
-		if rl.IsKeyPressed(key) {
-			in.HasToolHotkey = true
-			in.ToolHotkey = editor.Tool(i)
-			break
-		}
-	}
-
-	if rl.IsMouseButtonDown(rl.MouseButtonRight) {
-		d := rl.GetMouseDelta()
-		cam.Pan(d.X, d.Y)
-	}
-	wheel := rl.GetMouseWheelMove()
-	if wheel != 0 {
-		factor := float32(1.1)
-		if wheel < 0 {
-			factor = 1 / factor
-		}
-		cam.ZoomAt(mouse.X, mouse.Y, factor)
-		in.CursorWorld = cam.ScreenToWorld(mouse.X, mouse.Y)
-	}
-
 	_ = ed
-	return in
+	var t InputTracker
+	return t.Poll(cam)
 }

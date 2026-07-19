@@ -6,7 +6,7 @@ Civilians travel between places, hang out in the park, and react to things they 
 
 ## Status
 
-**Editor + ⌘ network map.** Sample streets are two stacked figure-8s (Mac ⌘). Agents use a default **Walk** brain and **PathDecision** (random at intersections; ready for A* routes). Maps load from [`maps/command-key.json`](maps/command-key.json). Plans in [`plan/`](plan/README.md).
+**Editor + Figure 8 map.** Sample streets form a horizontal figure-8 with a center junction. Agents use a default **Walk** brain and **PathDecision** (random at intersections; ready for A* routes). Map: [`maps/figure-8.json`](maps/figure-8.json). Plans in [`plan/`](plan/README.md).
 
 Next up: Phase 6 — richer civilian/police behaviors (travel, wander, flee, patrol). See the [roadmap](plan/roadmap.md).
 

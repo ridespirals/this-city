@@ -3,6 +3,7 @@ package editor
 import (
 	"testing"
 
+	"github.com/ridespirals/this-city/internal/config"
 	"github.com/ridespirals/this-city/internal/game"
 	"github.com/ridespirals/this-city/internal/sim"
 )
@@ -31,8 +32,9 @@ func TestToolbarHitSelectsTool(t *testing.T) {
 	s := game.NewSession(sim.NewWorld())
 	ed := New()
 	ed.SetTool(ToolPlacePolice)
+	l := config.C.UI.ToolbarLayout()
 	ed.Update(s, FrameInput{
-		CursorScreen: sim.Vec2{X: ToolbarX + ToolbarPad + 10, Y: ToolbarY + ToolbarPad + 10},
+		CursorScreen: sim.Vec2{X: l.X + l.Pad + 10, Y: l.Y + l.Pad + 10},
 		LeftPressed:  true,
 	})
 	if ed.ActiveTool != ToolSelect {
@@ -75,5 +77,26 @@ func TestDeleteSelectedEntity(t *testing.T) {
 	ed.Update(s, FrameInput{DeletePressed: true})
 	if s.World.Events.Len() != 0 {
 		t.Fatal("expected delete")
+	}
+}
+
+func TestWorldPickRadiusAccountsForZoom(t *testing.T) {
+	if WorldPickRadius(36, 1) != 36 {
+		t.Fatalf("zoom1=%v", WorldPickRadius(36, 1))
+	}
+	if WorldPickRadius(36, 0.5) != 72 {
+		t.Fatalf("zoom0.5=%v", WorldPickRadius(36, 0.5))
+	}
+}
+
+func TestToolbarContainsPanel(t *testing.T) {
+	l := config.C.UI.ToolbarLayout()
+	inside := sim.Vec2{X: l.X + l.Pad + 2, Y: l.Y + l.Pad + 2}
+	if !ToolbarContains(inside) {
+		t.Fatal("expected inside panel")
+	}
+	outside := sim.Vec2{X: l.X + l.Width() + 20, Y: l.Y}
+	if ToolbarContains(outside) {
+		t.Fatal("expected outside panel")
 	}
 }

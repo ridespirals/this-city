@@ -4,7 +4,7 @@ Planning docs for the city simulation. Code follows these contracts; when scope 
 
 ## Status
 
-**Current phase:** 5+ — Editor + ⌘ network map, Walk FSM, PathDecision. Next: Phase 6 — richer civilian/police behaviors. See [roadmap.md](roadmap.md).
+**Current phase:** 5+ — Editor + Figure 8 map, Walk FSM, PathDecision. Next: Phase 6 — richer civilian/police behaviors. See [roadmap.md](roadmap.md).
 
 ## Locked decisions
 
