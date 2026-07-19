@@ -27,7 +27,8 @@ Implemented in `internal/sim`:
 |-----------|---------|
 | `Transform2D` | Position, rotation (radians), optional scale |
 | `Velocity` | Linear velocity for free movement / steering |
-| `PathFollower` | Path id, distance along path, speed, direction |
+| `PathFollower` | Network edge id, distance, speed, forward |
+| `PathDecision` | Random vs routed junction choice (`Route` for A*) |
 | `AgentBrain` | FSM id/type, current state, blackboard ref |
 | `Perception` | Radius, last sensed entity/event ids |
 | `Role` | `Civilian`, `Police`, … |

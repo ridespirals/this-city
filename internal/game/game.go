@@ -14,21 +14,41 @@ type Session struct {
 
 // NewSession wraps a world for ticking and registers built-in machines.
 func NewSession(world *sim.World) *Session {
+	sim.EnsureRNG(world, 1)
 	return &Session{
 		World: world,
 		Machines: Machines{
 			MachineDebug: DebugMachine(),
+			MachineWalk:  WalkMachine(),
 		},
 	}
 }
 
-// SpawnDemo adds a Phase-4 path and a ping-pong path follower.
+// SpawnDemo loads the ⌘ sample map and a few random-walking agents.
 func (s *Session) SpawnDemo() {
 	if s == nil || s.World == nil {
 		return
 	}
-	id := s.World.Paths.Add(DemoPath())
-	SpawnPathFollower(s.World, id, 140)
+	_ = LoadDemoMap(s.World)
+	var first sim.EdgeID
+	s.World.Network.ForEachEdge(func(e *sim.Edge) {
+		if first == sim.NilEdge {
+			first = e.ID
+		}
+	})
+	if first != sim.NilEdge {
+		SpawnPathFollower(s.World, first, 120)
+		// Second agent on another edge, opposite direction bias via RNG choices.
+		var second sim.EdgeID
+		s.World.Network.ForEachEdge(func(e *sim.Edge) {
+			if second == sim.NilEdge && e.ID != first {
+				second = e.ID
+			}
+		})
+		if second != sim.NilEdge {
+			SpawnPathFollower(s.World, second, 100)
+		}
+	}
 }
 
 // Tick advances simulation systems by dt seconds when not paused.

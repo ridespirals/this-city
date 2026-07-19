@@ -1,42 +1,54 @@
 package game
 
-import "github.com/ridespirals/this-city/internal/sim"
+import (
+	"os"
+	"path/filepath"
 
-// DemoPath builds a hard-coded S-curve street for Phase 4.
-func DemoPath() []sim.CubicBezier {
-	return []sim.CubicBezier{
-		{
-			P0: sim.Vec2{X: 160, Y: 480},
-			C0: sim.Vec2{X: 320, Y: 480},
-			C1: sim.Vec2{X: 320, Y: 200},
-			P1: sim.Vec2{X: 560, Y: 200},
-		},
-		{
-			P0: sim.Vec2{X: 560, Y: 200},
-			C0: sim.Vec2{X: 800, Y: 200},
-			C1: sim.Vec2{X: 800, Y: 520},
-			P1: sim.Vec2{X: 1120, Y: 520},
-		},
+	"github.com/ridespirals/this-city/internal/sim"
+)
+
+// LoadDemoMap loads maps/command-key.json when present, else the built-in ⌘ map.
+func LoadDemoMap(w *sim.World) error {
+	if w == nil {
+		return nil
 	}
+	candidates := []string{
+		"maps/command-key.json",
+		filepath.Join("..", "..", "maps", "command-key.json"),
+	}
+	for _, p := range candidates {
+		if _, err := os.Stat(p); err == nil {
+			return sim.LoadNetworkFile(p, w.Network)
+		}
+	}
+	return sim.ApplyMapFile(sim.CommandKeyMap(), w.Network)
 }
 
-// SpawnPathFollower creates an agent that follows pathID at the given speed.
-func SpawnPathFollower(w *sim.World, pathID sim.PathID, speed float32) sim.Entity {
+// SpawnPathFollower creates a walking agent on edgeID.
+func SpawnPathFollower(w *sim.World, edgeID sim.EdgeID, speed float32) sim.Entity {
 	if w == nil {
 		return sim.NilEntity
 	}
 	e := w.Create()
 	w.Roles.Set(e, sim.RoleTag{Role: sim.RoleDebug})
-	w.Followers.Set(e, sim.PathFollower{
-		Path:     pathID,
-		Distance: 0,
-		Speed:    speed,
-		Forward:  true,
-		PingPong: true,
-	})
-	// Snap transform to path start.
-	f, _ := w.Followers.Get(e)
+	AttachWalkBrain(w, e)
+	w.Decisions.Set(e, sim.DefaultPathDecision())
 	w.Transforms.Set(e, sim.Transform2D{Scale: 1})
-	w.Followers.Set(e, sim.AdvancePathFollower(w, e, f, 0))
+	sim.PlaceOnEdge(w, e, edgeID, 0, true, speed)
+	return e
+}
+
+// SpawnWalkerOnNearestEdge places a role agent on the nearest network edge to pos.
+func SpawnWalkerOnNearestEdge(w *sim.World, role sim.Role, pos sim.Vec2, speed float32) sim.Entity {
+	e := SpawnAgent(w, role, pos)
+	if e.IsNil() || w.Network == nil {
+		return e
+	}
+	edge, dist, ok := w.Network.NearestEdge(pos, 1e9)
+	if !ok {
+		return e
+	}
+	w.Decisions.Set(e, sim.DefaultPathDecision())
+	sim.PlaceOnEdge(w, e, edge, dist, true, speed)
 	return e
 }

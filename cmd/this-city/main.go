@@ -39,9 +39,9 @@ func main() {
 
 		render.BeginFrame(bg)
 		cam.Begin()
-		render.DrawPaths(session.World, ed.SelectedPath)
+		render.DrawPaths(session.World, ed.SelectedEdge)
 		if ed.ActiveTool == editor.ToolEditPath || ed.ActiveTool == editor.ToolDrawPath {
-			render.DrawPathHandles(session.World, ed.SelectedPath)
+			render.DrawPathHandles(session.World, ed.SelectedEdge)
 		}
 		render.DrawWorld(session.World, ed.Selected)
 		render.DrawGhost(ed, in.CursorWorld)
@@ -51,7 +51,7 @@ func main() {
 		render.DrawHUD(render.FrameInfo{
 			Paused:  session.Paused,
 			SimTime: session.Time,
-			Phase:   "Phase 5 — editor",
+			Phase:   "⌘ map · walk + path decisions",
 		})
 		render.EndFrame()
 	}

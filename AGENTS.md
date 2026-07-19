@@ -4,7 +4,7 @@ This file is the contract for automated assistants working on **This City**. Pre
 
 ## Project in one paragraph
 
-Go + raylib city sim. ECS + FSM-driven agents (civilians, police), Bezier street network, path following/pathfinding, BSP spatial queries. Layers: pure `sim` → `game` → `render`/`editor`. Module path: `github.com/ridespirals/this-city`. Phase 5 complete (editor); next is Phase 6 (civilian/police FSMs).
+Go + raylib city sim. ECS + FSM-driven agents on a Bézier **Network** (nodes/edges). Default brain is `walk`; `PathDecision` chooses edges at junctions (random now, `DecideRoute` for A*/Dijkstra later). Maps: JSON under `maps/`. Layers: `sim` → `game` → `render`/`editor`. Module: `github.com/ridespirals/this-city`.
 
 ## Read first
 
@@ -67,16 +67,17 @@ plan/                     # design docs (source of truth for intent)
 - FSM: `sim.Definition` + `AgentBrain`; tick order OnUpdate → transition → OnExit → Action → OnEnter.
 - Guards must be side-effect free; mutate blackboard in actions/hooks only.
 - Register machines on `game.Session.Machines` by string key (`AgentBrain.Machine`).
-- Paths: `World.Paths` (`PathSet`) owns `CubicBezier` chains + `Polyline` samples; not ECS entities.
-- Followers: `PathFollower` component; advance via `sim.TickPathFollowers` (ping-pong or clamp at ends).
-- Render must stroke `Path.Poly` from sim — do not re-sample Béziers in `render`.
-- Editor mutations go through `game` commands (`SpawnAgent`, `SpawnEvent`, `DeleteEntity`, `SetPathFromAnchors`, …).
-- `editor` must stay raylib-free: accept `editor.FrameInput`; `render.CollectEditorInput` fills it.
-- Events: `EventSource` component; timed kinds despawn via `TickEvents`.
+- Network: `World.Network` (`Node` / `Edge` + polylines). Map JSON: `plan/map-format.md`, `maps/command-key.json`.
+- Followers: `PathFollower` on edges; junctions use `PathDecision` (`DecideRandom` / `DecideRoute`).
+- Default brain: `MachineWalk` / state `walk` on every spawned agent (`game.AttachWalkBrain`).
+- Render strokes `Edge.Poly` only — do not re-sample Béziers in `render`.
+- Editor mutations via `game` commands; `editor` stays raylib-free (`FrameInput`).
+- Events: `EventSource`; timed despawn via `TickEvents`.
+- Planned behaviors: travel, patrol, wander, flee — compose with PathDecision + FSM (`plan/agents.md`).
 
 ## Current phase
 
-**Phase 5 — editor (complete).** Next: Phase 6 — civilian + police FSMs (`plan/agents.md`).
+Editor + ⌘ map + Walk/PathDecision. Next: Phase 6 behavior sets (`plan/agents.md`).
 
 ## Suggested commit style
 

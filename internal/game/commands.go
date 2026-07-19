@@ -2,7 +2,7 @@ package game
 
 import "github.com/ridespirals/this-city/internal/sim"
 
-// SpawnAgent places a role-tagged agent at pos (no FSM yet — Phase 6).
+// SpawnAgent places a role-tagged agent with a Walk brain at pos.
 func SpawnAgent(w *sim.World, role sim.Role, pos sim.Vec2) sim.Entity {
 	if w == nil {
 		return sim.NilEntity
@@ -10,6 +10,8 @@ func SpawnAgent(w *sim.World, role sim.Role, pos sim.Vec2) sim.Entity {
 	e := w.Create()
 	w.Transforms.Set(e, sim.Transform2D{X: pos.X, Y: pos.Y, Scale: 1})
 	w.Roles.Set(e, sim.RoleTag{Role: role})
+	AttachWalkBrain(w, e)
+	w.Decisions.Set(e, sim.DefaultPathDecision())
 	return e
 }
 
@@ -53,31 +55,30 @@ func DeleteEntity(w *sim.World, e sim.Entity) bool {
 	return w.Destroy(e)
 }
 
-// SetPathFromAnchors creates or updates a path from anchor points.
-// If id is NilPath, a new path is created. Returns the path id.
-func SetPathFromAnchors(w *sim.World, id sim.PathID, anchors []sim.Vec2) sim.PathID {
-	if w == nil {
-		return sim.NilPath
+// SetPathFromAnchors creates or updates an editor edge-group from anchor points.
+// group 0 means allocate a new group. Returns the group id.
+func SetPathFromAnchors(w *sim.World, group uint32, anchors []sim.Vec2) uint32 {
+	if w == nil || w.Network == nil {
+		return 0
 	}
-	segs := sim.AnchorsToSegments(anchors)
-	if len(segs) == 0 {
-		return id
-	}
-	if id == sim.NilPath {
-		return w.Paths.Add(segs)
-	}
-	if !w.Paths.SetSegments(id, segs) {
-		return w.Paths.Add(segs)
-	}
-	return id
+	g, _ := w.Network.AnchorsToChain(anchors, group)
+	return g
 }
 
-// DeletePath removes a path from the world.
-func DeletePath(w *sim.World, id sim.PathID) bool {
-	if w == nil {
+// DeletePathGroup removes an editor-authored edge group.
+func DeletePathGroup(w *sim.World, group uint32) {
+	if w == nil || w.Network == nil {
+		return
+	}
+	w.Network.RemoveGroup(group)
+}
+
+// DeleteEdge removes a single network edge.
+func DeleteEdge(w *sim.World, id sim.EdgeID) bool {
+	if w == nil || w.Network == nil {
 		return false
 	}
-	return w.Paths.Remove(id)
+	return w.Network.RemoveEdge(id)
 }
 
 // PickEntity returns the nearest entity with a transform within maxDist, or NilEntity.
@@ -99,25 +100,16 @@ func PickEntity(w *sim.World, pos sim.Vec2, maxDist float32) sim.Entity {
 	return best
 }
 
-// PickPath returns the nearest path id within maxDist of pos (distance to polyline samples).
-func PickPath(w *sim.World, pos sim.Vec2, maxDist float32) sim.PathID {
-	if w == nil || w.Paths == nil {
-		return sim.NilPath
+// PickEdge returns the nearest network edge within maxDist.
+func PickEdge(w *sim.World, pos sim.Vec2, maxDist float32) sim.EdgeID {
+	if w == nil || w.Network == nil {
+		return sim.NilEdge
 	}
-	best := sim.NilPath
-	bestD := maxDist * maxDist
-	w.Paths.ForEach(func(p *sim.Path) {
-		for _, pt := range p.Poly.Points {
-			dx := pt.X - pos.X
-			dy := pt.Y - pos.Y
-			d := dx*dx + dy*dy
-			if d <= bestD {
-				bestD = d
-				best = p.ID
-			}
-		}
-	})
-	return best
+	id, _, ok := w.Network.NearestEdge(pos, maxDist)
+	if !ok {
+		return sim.NilEdge
+	}
+	return id
 }
 
 // MoveEntity sets an entity's transform position (keeps rotation/scale).

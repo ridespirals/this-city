@@ -121,19 +121,19 @@ func DrawHUD(info FrameInfo) {
 	rl.DrawText(fmt.Sprintf("sim time: %.1fs", info.SimTime), x, 140, 18, rl.LightGray)
 }
 
-// DrawPaths strokes path polylines from sim geometry (read-only).
-func DrawPaths(w *sim.World, selected sim.PathID) {
-	if w == nil || w.Paths == nil {
+// DrawPaths strokes network edge polylines from sim geometry (read-only).
+func DrawPaths(w *sim.World, selected sim.EdgeID) {
+	if w == nil || w.Network == nil {
 		return
 	}
-	w.Paths.ForEach(func(p *sim.Path) {
+	w.Network.ForEachEdge(func(e *sim.Edge) {
 		stroke := rl.NewColor(90, 110, 140, 255)
 		width := float32(4)
-		if p.ID == selected {
+		if e.ID == selected {
 			stroke = rl.NewColor(140, 190, 230, 255)
 			width = 6
 		}
-		pts := p.Poly.Points
+		pts := e.Poly.Points
 		for i := 1; i < len(pts); i++ {
 			a, b := pts[i-1], pts[i]
 			rl.DrawLineEx(rl.NewVector2(a.X, a.Y), rl.NewVector2(b.X, b.Y), width, stroke)
@@ -141,23 +141,22 @@ func DrawPaths(w *sim.World, selected sim.PathID) {
 	})
 }
 
-// DrawPathHandles draws Bézier control points for the selected path.
-func DrawPathHandles(w *sim.World, pathID sim.PathID) {
-	if w == nil || pathID == sim.NilPath {
+// DrawPathHandles draws Bézier control points for the selected edge.
+func DrawPathHandles(w *sim.World, edgeID sim.EdgeID) {
+	if w == nil || edgeID == sim.NilEdge {
 		return
 	}
-	p, ok := w.Paths.Get(pathID)
+	e, ok := w.Network.GetEdge(edgeID)
 	if !ok {
 		return
 	}
-	for _, seg := range p.Segments {
-		rl.DrawLineEx(rl.NewVector2(seg.P0.X, seg.P0.Y), rl.NewVector2(seg.C0.X, seg.C0.Y), 1, rl.DarkGray)
-		rl.DrawLineEx(rl.NewVector2(seg.P1.X, seg.P1.Y), rl.NewVector2(seg.C1.X, seg.C1.Y), 1, rl.DarkGray)
-		rl.DrawCircle(int32(seg.P0.X), int32(seg.P0.Y), 6, rl.RayWhite)
-		rl.DrawCircle(int32(seg.P1.X), int32(seg.P1.Y), 6, rl.RayWhite)
-		rl.DrawCircle(int32(seg.C0.X), int32(seg.C0.Y), 5, rl.NewColor(220, 180, 80, 255))
-		rl.DrawCircle(int32(seg.C1.X), int32(seg.C1.Y), 5, rl.NewColor(220, 180, 80, 255))
-	}
+	seg := e.Curve
+	rl.DrawLineEx(rl.NewVector2(seg.P0.X, seg.P0.Y), rl.NewVector2(seg.C0.X, seg.C0.Y), 1, rl.DarkGray)
+	rl.DrawLineEx(rl.NewVector2(seg.P1.X, seg.P1.Y), rl.NewVector2(seg.C1.X, seg.C1.Y), 1, rl.DarkGray)
+	rl.DrawCircle(int32(seg.P0.X), int32(seg.P0.Y), 6, rl.RayWhite)
+	rl.DrawCircle(int32(seg.P1.X), int32(seg.P1.Y), 6, rl.RayWhite)
+	rl.DrawCircle(int32(seg.C0.X), int32(seg.C0.Y), 5, rl.NewColor(220, 180, 80, 255))
+	rl.DrawCircle(int32(seg.C1.X), int32(seg.C1.Y), 5, rl.NewColor(220, 180, 80, 255))
 }
 
 // DrawWorld draws agents and events from sim state (read-only).

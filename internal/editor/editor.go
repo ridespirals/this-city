@@ -54,30 +54,28 @@ const (
 type FrameInput struct {
 	CursorWorld   sim.Vec2
 	CursorScreen  sim.Vec2
-	LeftPressed   bool // edge: just clicked
+	LeftPressed   bool
 	LeftDown      bool
 	DeletePressed bool
 	CycleEvent    bool
-	ToolHotkey    Tool // ToolCount means none
+	ToolHotkey    Tool
 	HasToolHotkey bool
 }
 
 // Editor holds UI/tool state that is not part of the sim world.
 type Editor struct {
-	ActiveTool   Tool
-	EventKind    sim.EventKind
-	Selected     sim.Entity
-	SelectedPath sim.PathID
+	ActiveTool    Tool
+	EventKind     sim.EventKind
+	Selected      sim.Entity
+	SelectedEdge  sim.EdgeID
+	SelectedGroup uint32
 
-	// Path drawing draft (anchor polyline).
 	DraftAnchors []sim.Vec2
-	DraftPathID  sim.PathID
+	DraftGroup   uint32
 
-	// Dragging for select / edit path.
-	Dragging   bool
-	DragPathID sim.PathID
-	DragSeg    int
-	DragWhich  int // 0=P0,1=C0,2=C1,3=P1
+	Dragging  bool
+	DragEdge  sim.EdgeID
+	DragWhich int // 0=P0/node From, 1=C0, 2=C1, 3=P1/node To
 }
 
 // New returns an editor with the select tool active.
@@ -86,9 +84,7 @@ func New() *Editor {
 		ActiveTool:   ToolSelect,
 		EventKind:    sim.EventCrime,
 		Selected:     sim.NilEntity,
-		SelectedPath: sim.NilPath,
-		DraftPathID:  sim.NilPath,
-		DragSeg:      -1,
+		SelectedEdge: sim.NilEdge,
 	}
 }
 
@@ -99,16 +95,14 @@ func (e *Editor) SetTool(tool Tool) {
 	}
 	e.ActiveTool = tool
 	e.Dragging = false
-	e.DragSeg = -1
 	if tool != ToolDrawPath {
-		// Keep draft if switching away briefly? Clear for predictability.
 		e.clearDraft()
 	}
 }
 
 func (e *Editor) clearDraft() {
 	e.DraftAnchors = nil
-	e.DraftPathID = sim.NilPath
+	e.DraftGroup = 0
 }
 
 // ToolbarHit returns the tool under screen position, or false.
@@ -157,7 +151,6 @@ func (e *Editor) Update(s *game.Session, in FrameInput) {
 	}
 	if e.Dragging && !in.LeftDown {
 		e.Dragging = false
-		e.DragSeg = -1
 	}
 
 	if in.DeletePressed {
@@ -170,40 +163,32 @@ func (e *Editor) onWorldClick(s *game.Session, pos sim.Vec2) {
 	switch e.ActiveTool {
 	case ToolSelect:
 		e.Selected = game.PickEntity(w, pos, 24)
-		e.SelectedPath = sim.NilPath
+		e.SelectedEdge = sim.NilEdge
 		if !e.Selected.IsNil() {
 			e.Dragging = true
 		}
 	case ToolPlaceCivilian:
-		e.Selected = game.SpawnAgent(w, sim.RoleCivilian, pos)
+		e.Selected = game.SpawnWalkerOnNearestEdge(w, sim.RoleCivilian, pos, 90)
 	case ToolPlacePolice:
-		e.Selected = game.SpawnAgent(w, sim.RolePolice, pos)
+		e.Selected = game.SpawnWalkerOnNearestEdge(w, sim.RolePolice, pos, 100)
 	case ToolPlaceEvent:
 		e.Selected = game.SpawnEvent(w, e.EventKind, pos)
 	case ToolDrawPath:
 		e.DraftAnchors = append(e.DraftAnchors, pos)
 		if len(e.DraftAnchors) >= 2 {
-			e.DraftPathID = game.SetPathFromAnchors(w, e.DraftPathID, e.DraftAnchors)
-			e.SelectedPath = e.DraftPathID
+			e.DraftGroup = game.SetPathFromAnchors(w, e.DraftGroup, e.DraftAnchors)
+			e.SelectedGroup = e.DraftGroup
 		}
 	case ToolEditPath:
 		e.Selected = sim.NilEntity
-		// Prefer grabbing a control handle on the selected path; else pick a path.
-		if e.SelectedPath != sim.NilPath {
-			if seg, which, ok := pickHandle(w, e.SelectedPath, pos, 14); ok {
-				e.Dragging = true
-				e.DragPathID = e.SelectedPath
-				e.DragSeg = seg
-				e.DragWhich = which
-				return
+		e.SelectedEdge = game.PickEdge(w, pos, 20)
+		if e.SelectedEdge != sim.NilEdge {
+			if edge, ok := w.Network.GetEdge(e.SelectedEdge); ok {
+				e.SelectedGroup = edge.Group
 			}
-		}
-		e.SelectedPath = game.PickPath(w, pos, 20)
-		if e.SelectedPath != sim.NilPath {
-			if seg, which, ok := pickHandle(w, e.SelectedPath, pos, 14); ok {
+			if which, ok := pickHandle(w, e.SelectedEdge, pos, 14); ok {
 				e.Dragging = true
-				e.DragPathID = e.SelectedPath
-				e.DragSeg = seg
+				e.DragEdge = e.SelectedEdge
 				e.DragWhich = which
 			}
 		}
@@ -214,56 +199,46 @@ func (e *Editor) onDrag(w *sim.World, pos sim.Vec2) {
 	switch e.ActiveTool {
 	case ToolSelect:
 		if !e.Selected.IsNil() {
-			// Don't fight path followers.
 			if _, ok := w.Followers.Get(e.Selected); ok {
 				return
 			}
 			game.MoveEntity(w, e.Selected, pos)
 		}
 	case ToolEditPath:
-		if e.DragPathID == sim.NilPath || e.DragSeg < 0 {
+		if e.DragEdge == sim.NilEdge {
 			return
 		}
-		p, ok := w.Paths.Get(e.DragPathID)
-		if !ok || e.DragSeg >= len(p.Segments) {
+		edge, ok := w.Network.GetEdge(e.DragEdge)
+		if !ok {
 			return
 		}
-		segs := append([]sim.CubicBezier(nil), p.Segments...)
-		seg := segs[e.DragSeg]
 		switch e.DragWhich {
 		case 0:
-			seg.P0 = pos
-		case 1:
-			seg.C0 = pos
-		case 2:
-			seg.C1 = pos
+			w.Network.MoveNode(edge.From, pos)
 		case 3:
-			seg.P1 = pos
+			w.Network.MoveNode(edge.To, pos)
+		case 1:
+			w.Network.SetEdgeCurve(e.DragEdge, pos, edge.Curve.C1)
+		case 2:
+			w.Network.SetEdgeCurve(e.DragEdge, edge.Curve.C0, pos)
 		}
-		segs[e.DragSeg] = seg
-		// Keep chain continuity: moving P1 updates next P0 and vice versa.
-		if e.DragWhich == 3 && e.DragSeg+1 < len(segs) {
-			n := segs[e.DragSeg+1]
-			n.P0 = pos
-			segs[e.DragSeg+1] = n
-		}
-		if e.DragWhich == 0 && e.DragSeg > 0 {
-			prev := segs[e.DragSeg-1]
-			prev.P1 = pos
-			segs[e.DragSeg-1] = prev
-		}
-		w.Paths.SetSegments(e.DragPathID, segs)
 	}
 }
 
 func (e *Editor) onDelete(w *sim.World) {
 	if e.ActiveTool == ToolEditPath || e.ActiveTool == ToolDrawPath {
-		if e.SelectedPath != sim.NilPath {
-			game.DeletePath(w, e.SelectedPath)
-			if e.DraftPathID == e.SelectedPath {
+		if e.SelectedGroup != 0 {
+			game.DeletePathGroup(w, e.SelectedGroup)
+			if e.DraftGroup == e.SelectedGroup {
 				e.clearDraft()
 			}
-			e.SelectedPath = sim.NilPath
+			e.SelectedGroup = 0
+			e.SelectedEdge = sim.NilEdge
+			return
+		}
+		if e.SelectedEdge != sim.NilEdge {
+			game.DeleteEdge(w, e.SelectedEdge)
+			e.SelectedEdge = sim.NilEdge
 			return
 		}
 	}
@@ -273,26 +248,22 @@ func (e *Editor) onDelete(w *sim.World) {
 	}
 }
 
-func pickHandle(w *sim.World, id sim.PathID, pos sim.Vec2, maxDist float32) (seg, which int, ok bool) {
-	p, found := w.Paths.Get(id)
+func pickHandle(w *sim.World, id sim.EdgeID, pos sim.Vec2, maxDist float32) (which int, ok bool) {
+	e, found := w.Network.GetEdge(id)
 	if !found {
-		return -1, -1, false
+		return -1, false
 	}
 	bestD := maxDist * maxDist
-	seg, which = -1, -1
-	for i, s := range p.Segments {
-		pts := [4]sim.Vec2{s.P0, s.C0, s.C1, s.P1}
-		for j, pt := range pts {
-			dx := pt.X - pos.X
-			dy := pt.Y - pos.Y
-			d := dx*dx + dy*dy
-			if d <= bestD {
-				bestD = d
-				seg = i
-				which = j
-				ok = true
-			}
+	which = -1
+	pts := [4]sim.Vec2{e.Curve.P0, e.Curve.C0, e.Curve.C1, e.Curve.P1}
+	for j, pt := range pts {
+		d := pt.Sub(pos)
+		dd := d.Dot(d)
+		if dd <= bestD {
+			bestD = dd
+			which = j
+			ok = true
 		}
 	}
-	return seg, which, ok
+	return which, ok
 }

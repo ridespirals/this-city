@@ -2,36 +2,42 @@
 // It must not import raylib or UI packages.
 package sim
 
+import "math/rand"
+
 type remover interface {
 	removeEntity(Entity)
 }
 
-// World holds ECS entity slots and component stores.
+// World holds ECS entity slots, component stores, and the path network.
 type World struct {
 	generations []uint32
 	free        []uint32
 	removers    []remover
 
-	Paths *PathSet
+	Network *Network
+	RNG     *rand.Rand
 
 	Transforms *ComponentStore[Transform2D]
 	Brains     *ComponentStore[AgentBrain]
 	Roles      *ComponentStore[RoleTag]
 	Followers  *ComponentStore[PathFollower]
+	Decisions  *ComponentStore[PathDecision]
 	Events     *ComponentStore[EventSource]
 }
 
 // NewWorld returns an empty simulation world with standard component stores.
 func NewWorld() *World {
 	w := &World{
-		Paths:      newPathSet(),
+		Network:    newNetwork(),
+		RNG:        rand.New(rand.NewSource(1)),
 		Transforms: newStore[Transform2D](),
 		Brains:     newStore[AgentBrain](),
 		Roles:      newStore[RoleTag](),
 		Followers:  newStore[PathFollower](),
+		Decisions:  newStore[PathDecision](),
 		Events:     newStore[EventSource](),
 	}
-	w.removers = []remover{w.Transforms, w.Brains, w.Roles, w.Followers, w.Events}
+	w.removers = []remover{w.Transforms, w.Brains, w.Roles, w.Followers, w.Decisions, w.Events}
 	return w
 }
 

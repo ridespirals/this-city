@@ -14,6 +14,10 @@ func TestSpawnAndPick(t *testing.T) {
 	if got != a {
 		t.Fatalf("pick=%v want %v", got, a)
 	}
+	brain, ok := w.Brains.Get(a)
+	if !ok || brain.Machine != MachineWalk {
+		t.Fatalf("expected walk brain, got %+v ok=%v", brain, ok)
+	}
 	if !DeleteEntity(w, a) || w.Alive(a) {
 		t.Fatal("delete failed")
 	}
@@ -21,17 +25,12 @@ func TestSpawnAndPick(t *testing.T) {
 
 func TestSetPathFromAnchors(t *testing.T) {
 	w := sim.NewWorld()
-	id := SetPathFromAnchors(w, sim.NilPath, []sim.Vec2{{0, 0}, {50, 0}, {50, 50}})
-	p, ok := w.Paths.Get(id)
-	if !ok || len(p.Segments) != 2 {
-		t.Fatalf("ok=%v segs=%d", ok, len(p.Segments))
+	g := SetPathFromAnchors(w, 0, []sim.Vec2{{0, 0}, {50, 0}, {50, 50}})
+	if g == 0 || w.Network.EdgeCount() != 2 {
+		t.Fatalf("group=%d edges=%d", g, w.Network.EdgeCount())
 	}
-	id2 := SetPathFromAnchors(w, id, []sim.Vec2{{0, 0}, {10, 0}})
-	if id2 != id {
-		t.Fatal("expected update in place")
-	}
-	p, _ = w.Paths.Get(id)
-	if len(p.Segments) != 1 {
-		t.Fatalf("segs=%d", len(p.Segments))
+	g2 := SetPathFromAnchors(w, g, []sim.Vec2{{0, 0}, {10, 0}})
+	if g2 != g || w.Network.EdgeCount() != 1 {
+		t.Fatalf("group=%d edges=%d", g2, w.Network.EdgeCount())
 	}
 }

@@ -58,8 +58,11 @@ Phased delivery from docs to a 3D-ready layered sim. Exit criteria are practical
 
 ## Phase 6 — Civilian + police FSMs
 
-- Full v1 state sets from [agents.md](agents.md).
+**Prerequisite done:** network map, Walk brain, PathDecision (random / route).
+
+- Compose behavior sets from [agents.md](agents.md): travel, wander, patrol, flee.
 - Hang out at benches; patrol/breaks; investigate crimes.
+- Wire A* into `DecideRoute` for travel.
 
 **Exit:** Observable sandbox loop with both roles reacting to placed events.
 

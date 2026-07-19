@@ -6,9 +6,9 @@ Civilians travel between places, hang out in the park, and react to things they 
 
 ## Status
 
-**Phase 5 — Editor toolbar (complete).** Place civilians/police/events, draw and edit Bézier paths, select/move/delete, pan/zoom camera. Plans remain in [`plan/`](plan/README.md).
+**Editor + ⌘ network map.** Sample streets are two stacked figure-8s (Mac ⌘). Agents use a default **Walk** brain and **PathDecision** (random at intersections; ready for A* routes). Maps load from [`maps/command-key.json`](maps/command-key.json). Plans in [`plan/`](plan/README.md).
 
-Next up: Phase 6 — Civilian + police FSMs. See the [roadmap](plan/roadmap.md).
+Next up: Phase 6 — richer civilian/police behaviors (travel, wander, flee, patrol). See the [roadmap](plan/roadmap.md).
 
 ## Stack
 

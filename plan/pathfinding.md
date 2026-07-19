@@ -1,40 +1,51 @@
-# Pathfinding
+# Pathfinding & path decisions
 
 ## Purpose
 
-Find routes across the Bezier street network so agents travel between locations (home, park bench, patrol waypoints) without steering freely through buildings (v1 assumes travel stays on the network).
+Choose how agents leave junctions and (later) compute routes across the network with Dijkstra/A*.
 
-## Graph construction
+## PathDecision (implemented)
 
-Derived from path geometry ([paths.md](paths.md)):
+Component on agents (`World.Decisions`):
 
-- **Nodes:** junctions + notable stops (bench anchors, spawn points, patrol posts).
-- **Edges:** Bezier segments (or chains) with weight = approximate length.
-- Rebuild graph when the editor commits geometry changes.
+| Mode | Behavior |
+|------|----------|
+| `DecideRandom` (default) | Uniform pick among incident edges; avoid U-turn when alternatives exist |
+| `DecideRoute` | Consume `Route []EdgeID` in order (filled by A*/Dijkstra or scripts) |
 
-## Algorithm (v1)
+API: `sim.ChooseNext(network, decision, arrival, rng)`.
 
-- **A\*** on the path graph with Euclidean (or octile) heuristic between node positions.
-- Output: ordered list of node ids / edge ids.
-- Agent `PathFollower` + brain consume the route; replan if blocked or destination changes.
+If no route is assigned, agents **always** use random intersection choice while walking.
 
-## Off-network movement (later)
+## Graph
 
-Short steers to sit on a bench or approach an event may leave the polyline briefly; rejoin nearest point on network afterward. Not required for first follower demo.
+Built as `sim.Network`:
 
-## Integration with BSP
+- **Nodes:** junctions
+- **Edges:** Bézier segments, weight ≈ `Poly.Length`
+- Bidirectional travel (follower `Forward` flag)
 
-- BSP does **not** replace A\*; it accelerates “who is near me” and picking.
-- Optional: use spatial index to find nearest path node to an agent when starting a journey.
+## Algorithms (next)
 
-## Performance
+- **A\*** / Dijkstra on the node/edge graph → fill `PathDecision.Route` and set `Mode = DecideRoute`.
+- Used by future **travel** behavior (go A→B) and optionally **patrol** loops.
+- Invalidate routes when the network version changes (editor edits).
 
-- City graphs stay small initially; naive A\* is fine.
-- Cache last route per agent; invalidate on graph version bump.
+## Behaviors (planned interaction)
+
+| Behavior | Decision use |
+|----------|----------------|
+| `walk` (now) | Random at junctions |
+| `travel` | A* route, then walk edges |
+| `patrol` | Fixed or cyclic route list |
+| `wander` | Random + occasional POI stops |
+| `flee` | Prefer edges increasing distance from threat (or reverse A*) |
+
+See [agents.md](agents.md).
 
 ## Testing
 
-- Hand-built graphs: shortest path correctness, unreachable goals, zero-length edges.
-- Fuzz weights non-negative.
+- Command-key map degree checks; follower visits multiple edges.
+- `DecideRoute` overrides random when a route is queued.
 
-See also: [paths.md](paths.md), [spatial.md](spatial.md), [agents.md](agents.md).
+See also: [paths.md](paths.md), [map-format.md](map-format.md).

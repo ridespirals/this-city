@@ -4,7 +4,7 @@ Planning docs for the city simulation. Code follows these contracts; when scope 
 
 ## Status
 
-**Current phase:** 5 — Editor toolbar (**complete**). Next: Phase 6 — Civilian + police FSMs. See [roadmap.md](roadmap.md).
+**Current phase:** 5+ — Editor + ⌘ network map, Walk FSM, PathDecision. Next: Phase 6 — richer civilian/police behaviors. See [roadmap.md](roadmap.md).
 
 ## Locked decisions
 
@@ -25,8 +25,9 @@ Planning docs for the city simulation. Code follows these contracts; when scope 
 | [state-machines.md](state-machines.md) | Reusable FSM engine for agents |
 | [paths.md](paths.md) | Bezier streets and path following |
 | [spatial.md](spatial.md) | BSP trees and spatial queries |
-| [pathfinding.md](pathfinding.md) | Path graph and A* |
-| [agents.md](agents.md) | Civilian and police behaviors |
+| [pathfinding.md](pathfinding.md) | PathDecision, graph, A*/Dijkstra plans |
+| [map-format.md](map-format.md) | JSON map storage (`maps/`) |
+| [agents.md](agents.md) | Walk default + civilian/police plans |
 | [events.md](events.md) | Placeable events / objects and responses |
 | [editor.md](editor.md) | 2D overhead toolbar and placement |
 | [rendering.md](rendering.md) | 2D now, 3D later; render isolation |

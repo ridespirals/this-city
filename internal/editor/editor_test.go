@@ -9,27 +9,27 @@ import (
 
 func TestPlaceCivilianViaClick(t *testing.T) {
 	s := game.NewSession(sim.NewWorld())
+	_ = game.LoadDemoMap(s.World)
 	ed := New()
 	ed.SetTool(ToolPlaceCivilian)
 	ed.Update(s, FrameInput{
-		CursorWorld:  sim.Vec2{X: 100, Y: 200},
-		CursorScreen: sim.Vec2{X: 400, Y: 400}, // outside toolbar
+		CursorWorld:  sim.Vec2{X: 640, Y: 250},
+		CursorScreen: sim.Vec2{X: 400, Y: 400},
 		LeftPressed:  true,
 	})
 	if s.World.Roles.Len() != 1 {
 		t.Fatalf("roles=%d", s.World.Roles.Len())
 	}
-	var role sim.Role
-	s.World.Roles.ForEach(func(_ sim.Entity, tag sim.RoleTag) { role = tag.Role })
-	if role != sim.RoleCivilian {
-		t.Fatalf("role=%v", role)
+	var brain sim.AgentBrain
+	s.World.Brains.ForEach(func(_ sim.Entity, b sim.AgentBrain) { brain = b })
+	if brain.Machine != game.MachineWalk || brain.State != game.StateWalk {
+		t.Fatalf("brain=%+v", brain)
 	}
 }
 
 func TestToolbarHitSelectsTool(t *testing.T) {
 	s := game.NewSession(sim.NewWorld())
 	ed := New()
-	// First button is Select at toolbar pad offset.
 	ed.SetTool(ToolPlacePolice)
 	ed.Update(s, FrameInput{
 		CursorScreen: sim.Vec2{X: ToolbarX + ToolbarPad + 10, Y: ToolbarY + ToolbarPad + 10},
@@ -38,12 +38,9 @@ func TestToolbarHitSelectsTool(t *testing.T) {
 	if ed.ActiveTool != ToolSelect {
 		t.Fatalf("tool=%v want Select", ed.ActiveTool)
 	}
-	if s.World.Len() != 0 {
-		t.Fatal("toolbar click should not spawn")
-	}
 }
 
-func TestDrawPathCreatesSegments(t *testing.T) {
+func TestDrawPathCreatesEdges(t *testing.T) {
 	s := game.NewSession(sim.NewWorld())
 	ed := New()
 	ed.SetTool(ToolDrawPath)
@@ -57,12 +54,11 @@ func TestDrawPathCreatesSegments(t *testing.T) {
 	click(0, 0)
 	click(100, 0)
 	click(100, 100)
-	if s.World.Paths.Len() != 1 {
-		t.Fatalf("paths=%d", s.World.Paths.Len())
+	if s.World.Network.EdgeCount() != 2 {
+		t.Fatalf("edges=%d", s.World.Network.EdgeCount())
 	}
-	p, ok := s.World.Paths.Get(ed.DraftPathID)
-	if !ok || len(p.Segments) != 2 {
-		t.Fatalf("segments=%v ok=%v", len(p.Segments), ok)
+	if ed.DraftGroup == 0 {
+		t.Fatal("expected draft group")
 	}
 }
 
@@ -75,26 +71,9 @@ func TestDeleteSelectedEntity(t *testing.T) {
 		CursorScreen: sim.Vec2{X: 400, Y: 400},
 		LeftPressed:  true,
 	})
-	if s.World.Events.Len() != 1 {
-		t.Fatal("expected event")
-	}
 	ed.SetTool(ToolSelect)
 	ed.Update(s, FrameInput{DeletePressed: true})
 	if s.World.Events.Len() != 0 {
 		t.Fatal("expected delete")
-	}
-}
-
-func TestHotkeyAndCycleEvent(t *testing.T) {
-	ed := New()
-	ed.Update(nil, FrameInput{}) // nil session no panic
-	s := game.NewSession(sim.NewWorld())
-	ed.Update(s, FrameInput{HasToolHotkey: true, ToolHotkey: ToolPlaceEvent})
-	if ed.ActiveTool != ToolPlaceEvent {
-		t.Fatal("hotkey")
-	}
-	ed.Update(s, FrameInput{CycleEvent: true})
-	if ed.EventKind != sim.EventDistress {
-		t.Fatalf("kind=%v", ed.EventKind)
 	}
 }

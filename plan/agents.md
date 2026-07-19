@@ -2,7 +2,27 @@
 
 ## Overview
 
-Agents are ECS entities with `Role`, `AgentBrain` (FSM), movement components, and `Perception`. Behavior differences come from FSM definitions and which systems run—not subclasses.
+Agents are ECS entities with `Role`, `AgentBrain` (FSM), `PathFollower`, `PathDecision`, and (later) `Perception`. Behavior differences come from FSM definitions and which systems run—not subclasses.
+
+## Default brain: Walk (now)
+
+Every spawned agent gets `MachineWalk` with a single `walk` state. Movement is continuous along the network; **`PathDecision`** (default: random) picks edges at junctions. No destination yet.
+
+```
+walk  →  (future transitions into travel / wander / flee / patrol)
+```
+
+## Behavior sets (planned)
+
+| Behavior | Intent | PathDecision |
+|----------|--------|--------------|
+| `walk` | Keep moving on the network | Random at intersections |
+| `travel` | Go from A to B | A*/Dijkstra → `DecideRoute` |
+| `patrol` | Loop waypoints / beat | Fixed or cyclic route |
+| `wander` | Walk, stop at benches, watch events | Random + perception interrupts |
+| `flee` | Escape a threat entity/category | Prefer increasing separation |
+
+Role FSMs (civilian / police) will compose these behaviors rather than replace the network follower.
 
 ## Civilian
 
