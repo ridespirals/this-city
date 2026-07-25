@@ -32,10 +32,15 @@ type Network struct {
 	nextNode  NodeID
 	nextEdge  EdgeID
 	nextGroup uint32
+	version   uint64 // bumps on topology / traversal-cost changes
 	nodes     map[NodeID]*Node
 	edges     map[EdgeID]*Edge
 	// incident[node] = edge ids touching the node
 	incident map[NodeID][]EdgeID
+	// blocked edges are omitted from pathfinding (events, closures).
+	blocked map[EdgeID]bool
+	// costMul multiplies Poly.Length when > 0; missing or <=0 means 1.
+	costMul map[EdgeID]float32
 }
 
 func newNetwork() *Network {
@@ -46,7 +51,90 @@ func newNetwork() *Network {
 		nodes:     make(map[NodeID]*Node),
 		edges:     make(map[EdgeID]*Edge),
 		incident:  make(map[NodeID][]EdgeID),
+		blocked:   make(map[EdgeID]bool),
+		costMul:   make(map[EdgeID]float32),
 	}
+}
+
+// Version increments when connectivity or traversal costs change (for replanners).
+func (n *Network) Version() uint64 {
+	if n == nil {
+		return 0
+	}
+	return n.version
+}
+
+func (n *Network) touch() {
+	if n != nil {
+		n.version++
+	}
+}
+
+// SetEdgeBlocked marks an edge non-traversable (or clears the block).
+func (n *Network) SetEdgeBlocked(id EdgeID, blocked bool) {
+	if n == nil {
+		return
+	}
+	if _, ok := n.edges[id]; !ok {
+		return
+	}
+	if blocked {
+		if !n.blocked[id] {
+			n.blocked[id] = true
+			n.touch()
+		}
+		return
+	}
+	if n.blocked[id] {
+		delete(n.blocked, id)
+		n.touch()
+	}
+}
+
+// EdgeBlocked reports whether id is closed to pathfinding.
+func (n *Network) EdgeBlocked(id EdgeID) bool {
+	return n != nil && n.blocked[id]
+}
+
+// SetEdgeCostMul sets a travel-cost multiplier for id (1 = default length).
+// Values <= 0 clear the override. Very large multipliers simulate congestion.
+func (n *Network) SetEdgeCostMul(id EdgeID, mul float32) {
+	if n == nil {
+		return
+	}
+	if _, ok := n.edges[id]; !ok {
+		return
+	}
+	if mul <= 0 {
+		if _, ok := n.costMul[id]; ok {
+			delete(n.costMul, id)
+			n.touch()
+		}
+		return
+	}
+	if n.costMul[id] != mul {
+		n.costMul[id] = mul
+		n.touch()
+	}
+}
+
+// TraversalCost returns the pathfinding weight for an edge, or false if blocked/missing.
+func (n *Network) TraversalCost(id EdgeID) (float32, bool) {
+	if n == nil {
+		return 0, false
+	}
+	e, ok := n.edges[id]
+	if !ok || n.blocked[id] {
+		return 0, false
+	}
+	cost := e.Poly.Length
+	if cost < 1e-6 {
+		cost = 1e-6
+	}
+	if m := n.costMul[id]; m > 0 {
+		cost *= m
+	}
+	return cost, true
 }
 
 // AddNode inserts a junction at pos.
@@ -57,6 +145,7 @@ func (n *Network) AddNode(pos Vec2) NodeID {
 	id := n.nextNode
 	n.nextNode++
 	n.nodes[id] = &Node{ID: id, Pos: pos}
+	n.touch()
 	return id
 }
 
@@ -108,6 +197,7 @@ func (n *Network) AddEdgeGrouped(from, to NodeID, c0, c1 Vec2, group uint32) Edg
 	n.edges[id] = e
 	n.incident[from] = append(n.incident[from], id)
 	n.incident[to] = append(n.incident[to], id)
+	n.touch()
 	return id
 }
 
@@ -139,13 +229,23 @@ func (n *Network) GetNode(id NodeID) (*Node, bool) {
 	return node, ok
 }
 
-// Edges returns a snapshot of all edges.
+// ForEachEdge invokes fn for every edge.
 func (n *Network) ForEachEdge(fn func(e *Edge)) {
 	if n == nil {
 		return
 	}
 	for _, e := range n.edges {
 		fn(e)
+	}
+}
+
+// ForEachNode invokes fn for every node.
+func (n *Network) ForEachNode(fn func(node *Node)) {
+	if n == nil {
+		return
+	}
+	for _, node := range n.nodes {
+		fn(node)
 	}
 }
 
@@ -195,8 +295,11 @@ func (n *Network) RemoveEdge(id EdgeID) bool {
 		return false
 	}
 	delete(n.edges, id)
+	delete(n.blocked, id)
+	delete(n.costMul, id)
 	n.incident[e.From] = removeEdgeID(n.incident[e.From], id)
 	n.incident[e.To] = removeEdgeID(n.incident[e.To], id)
+	n.touch()
 	return true
 }
 
@@ -246,6 +349,7 @@ func (n *Network) SetEdgeCurve(id EdgeID, c0, c1 Vec2) bool {
 	b := n.nodes[e.To]
 	e.Curve = CubicBezier{P0: a.Pos, C0: c0, C1: c1, P1: b.Pos}
 	e.Poly = BuildPolyline([]CubicBezier{e.Curve}, DefaultPathSamples)
+	n.touch()
 	return true
 }
 
@@ -263,6 +367,7 @@ func (n *Network) MoveNode(id NodeID, pos Vec2) bool {
 		e.Curve.P1 = b.Pos
 		e.Poly = BuildPolyline([]CubicBezier{e.Curve}, DefaultPathSamples)
 	}
+	n.touch()
 	return true
 }
 

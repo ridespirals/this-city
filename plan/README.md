@@ -26,7 +26,7 @@ Planning docs for the city simulation. Code follows these contracts; when scope 
 | [paths.md](paths.md) | Bezier streets and path following |
 | [noise.md](noise.md) | Perlin / Simplex / OpenSimplex / Worley |
 | [spatial.md](spatial.md) | BSP trees and spatial queries |
-| [pathfinding.md](pathfinding.md) | PathDecision, graph, A*/Dijkstra plans |
+| [pathfinding.md](pathfinding.md) | PathDecision + `sim/pathfind` algorithms |
 | [map-format.md](map-format.md) | JSON maps + SVG import (`maps/`, `assets/maps/`) |
 | [agents.md](agents.md) | Walk default + civilian/police plans |
 | [events.md](events.md) | Placeable events / objects and responses |

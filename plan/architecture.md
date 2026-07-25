@@ -56,6 +56,7 @@ flowchart LR
 - BSP and path-graph structures + query algorithms.
 - Time helpers, seeded RNG for deterministic tests.
 - Procedural noise (`sim/noise`: Perlin, Simplex, OpenSimplex, Worley).
+- Pathfinding (`sim/pathfind`: A*, Dijkstra, BFS, DFS, bidirectional, D* Lite).
 
 ### `game`
 

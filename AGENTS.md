@@ -4,7 +4,7 @@ This file is the contract for automated assistants working on **This City**. Pre
 
 ## Project in one paragraph
 
-Go + raylib city sim. ECS + FSM-driven agents on a Bézier **Network** (nodes/edges). Default brain is `walk`; `PathDecision` chooses edges at junctions (random now, `DecideRoute` for A*/Dijkstra later). Maps: JSON under `maps/`; SVG authoring/import under `assets/maps/` (`sim.ParseSVG` / `PathPiece` stamp). Layers: `sim` → `game` → `render`/`editor`. Module: `github.com/ridespirals/this-city`.
+Go + raylib city sim. ECS + FSM-driven agents on a Bézier **Network** (nodes/edges). Default brain is `walk`; `PathDecision` chooses edges at junctions (`DecideRandom` or `DecideRoute` from `sim/pathfind`). Maps: JSON under `maps/`; SVG authoring/import under `assets/maps/` (`sim.ParseSVG` / `PathPiece` stamp). Layers: `sim` → `game` → `render`/`editor`. Module: `github.com/ridespirals/this-city`.
 
 ## Read first
 
@@ -56,6 +56,7 @@ cmd/this-city/main.go     # window + loop wiring
 internal/config/          # process-wide Config (window, sim, UI scale/fonts)
 internal/sim/             # ECS world, stores, FSM engine (no raylib)
 internal/sim/noise/       # Perlin, Simplex, OpenSimplex, Worley (pure math)
+internal/sim/pathfind/    # A*, Dijkstra, BFS, DFS, bidirectional, D* Lite
 internal/game/            # session, machines, brain systems (no raylib)
 internal/render/          # raylib window + draw helpers
 internal/editor/          # tool state (tools in Phase 5)
@@ -75,6 +76,7 @@ plan/                     # design docs (source of truth for intent)
 - Network: `World.Network` (`Node` / `Edge` + polylines). Map JSON: `plan/map-format.md`, default `maps/dev-map.json` (figure-8 kept as fallback).
 - SVG: `sim.ParseSVG` / `PathPiece` / `StampPiece`; embed via `assets/maps` (`mapsvg.LoadStampPieces`). Convert with `cmd/svg2map`.
 - Followers: `PathFollower` on edges; junctions use `PathDecision` (`DecideRandom` / `DecideRoute`).
+- Pathfinding: `internal/sim/pathfind` (`Find`, A*/Dijkstra/BFS/DFS/bidirectional, `DStarLite`, `DynamicRoute`). Graph costs/blocks on `sim.Network`. See `plan/pathfinding.md`.
 - Default brain: `MachineWalk` / state `walk` on every spawned agent (`game.AttachWalkBrain`).
 - Render strokes `Edge.Poly` for committed edges; stamp ghosts may use `PathPiece.SampleStroke`.
 - UI text: Space Mono via `render.TextTitle` / `TextBody` / `TextLabel` / `TextCaption` (sizes from `config.C.UI`).

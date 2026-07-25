@@ -26,6 +26,15 @@ func DefaultPathDecision() PathDecision {
 	return PathDecision{Mode: DecideRandom, AvoidUTurn: true}
 }
 
+// SetRoute puts edges into DecideRoute mode for an agent (from pathfind.Result.Edges).
+func (d *PathDecision) SetRoute(edges []EdgeID) {
+	if d == nil {
+		return
+	}
+	d.Mode = DecideRoute
+	d.Route = append([]EdgeID(nil), edges...)
+}
+
 // Arrival is the context for a junction decision.
 type Arrival struct {
 	Node    NodeID
