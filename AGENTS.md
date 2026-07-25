@@ -55,6 +55,7 @@ Do not leave docs contradicting the code or the agreed plan.
 cmd/this-city/main.go     # window + loop wiring
 internal/config/          # process-wide Config (window, sim, UI scale/fonts)
 internal/sim/             # ECS world, stores, FSM engine (no raylib)
+internal/sim/noise/       # Perlin, Simplex, OpenSimplex, Worley (pure math)
 internal/game/            # session, machines, brain systems (no raylib)
 internal/render/          # raylib window + draw helpers
 internal/editor/          # tool state (tools in Phase 5)
@@ -85,6 +86,7 @@ plan/                     # design docs (source of truth for intent)
 - Editor mutations via `game` commands; `editor` stays raylib-free (`FrameInput`).
 - Events: `EventSource`; timed despawn via `TickEvents`.
 - Planned behaviors: travel, patrol, wander, flee — compose with PathDecision + FSM (`plan/agents.md`).
+- Procedural noise: `internal/sim/noise` (`Sampler` + Domain/Fractal/Output/Warp layers). See `plan/noise.md`.
 
 ## Current phase
 
